@@ -216,24 +216,6 @@ Torn.dat <- Torn.dat %>%
 library(ggplot2)
 ```
 
-Get USA data using a specialty package from github: 
-```{r}
-#remotes::install_github("ropensci/USAboundaries")
-#remotes::install_github("ropensci/USAboundariesData")
-library(USAboundaries)
-```
-
-Names of datasets: 
-* us_cities
-* us_congressional
-* us_counties
-* us_states
-* us_zipcodes
-```{r}
-sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
-stateBorders <- us_states(states = sts)
-```
-
 **Most Used**
 geom_line         geom_histogram
 geom_label        geom_text
@@ -310,7 +292,7 @@ ggplot(dat, aes(x = yr, y = nT)) +
 As a dot plot
 ```{r}
 ggplot(dat, aes(x = yr, y = nT)) + 
-  # Basic bargraph with year on the x axis and number of tornadoes on the y axis
+  # Basic dot plot with year on the x axis and number of tornadoes on the y axis
   geom_point(stat = "identity", 
            position = "stack", 
            fill = "black") +
@@ -333,13 +315,67 @@ ggplot(dat, aes(x = yr, y = nT)) +
                      breaks = seq(1950, 2023, 10))
 ```
 
-
-
-
 ## Making figures with tmap:
 
 ```{r}
 #install.packages("tmap")
 library(tmap)
 ```
+
+Get USA data using a specialty package from github: 
+```{r}
+#remotes::install_github("ropensci/USAboundaries")
+#remotes::install_github("ropensci/USAboundariesData")
+library(USAboundaries)
+```
+
+Names of datasets: 
+* us_cities
+* us_congressional
+* us_counties
+* us_states
+* us_zipcodes
+```{r}
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
+stateBorders <- us_states(states = sts)
+```
+
+```{r}
+library(sp)
+Torn.dat <- st_as_sf(Torn.dat)
+
+tm_shape(stateBorders,  
+         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
+  # Adjust the border color (col) and transparency (alpha)
+  tm_borders(col = "gray70", 
+             alpha = 1) +
+  # Add a compass. Specify size, font size, linewidth, and color. 
+  tm_compass(size = 3, 
+             fontsize = 1, 
+             lwd = 2, 
+             color.dark = "gray70") +   
+  # Add a scale bar. Specify width, font size, linewidth, and color. 
+  tm_scale_bar(width = .3, 
+               size = 0.8, 
+               lwd = 1.75, 
+               color.dark = "gray70") +
+  # Adjust the position of the scale bar and compass (attr.position) and add space between the map and edge of the figure border
+  tm_layout(attr.position = c("left", "bottom"), 
+            inner.margins = c(.1, .1, .1, .1)) +
+tm_shape(Torn.dat, 
+         is.master = TRUE, 
+         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
+  tm_bubbles(size = 0.1, 
+             col = "mag", 
+             breaks = seq(0, 5, by=1),
+             labels = c("F1", "F2", "F3", "F4", "F5"), 
+             title.col = "Magnitude") +
+      tm_layout("Modern Tornadoes", 
+                legend.title.size = 1.1,
+              legend.position = c("right", "bottom"), 
+              legend.stack = "horizontal",
+              legend.frame = FALSE, 
+              legend.text.size = 1, legend.width = -0.2)
+```
+
 
