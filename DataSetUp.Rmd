@@ -374,7 +374,7 @@ minLCL <- numeric()
  
 for(i in 743:length(slug)){
   print(i)
-  rb <- brick(paste0("/Volumes/Zoe's Home/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i])) #<-- this is for varying NARR times
+  rb <- brick(paste0("E:/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i])) #<-- this is for varying NARR times
   CAPE <- raster(rb, layer = 375)
   sbCAPE <- raster(rb, layer = 315)
   DEW <- raster(rb, layer = 290)
