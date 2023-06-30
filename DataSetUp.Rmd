@@ -345,8 +345,12 @@ slug <- BigDays.sfdfT$slug
 slug2 <- BigDays.sfdfT$slug2
 ```
 
-Read the grib files as raster bricks and assign the CAPE and helicity variables to separate raster layers. Extract the average (and extreme) environmental values within each of the big days in large groups hulls.
 ```{r}
+library(raster)
+```
+
+Read the grib files as raster bricks and assign the CAPE and helicity variables to separate raster layers. Extract the average (and extreme) environmental values within each of the big days in large groups hulls.
+```{r, eval = FALSE}
 avgCAPE <- numeric()
 avgsbCAPE <- numeric()
 avgDEW <- numeric()
@@ -376,9 +380,9 @@ maxSM <- numeric()
 maxLCL <- numeric()
 minLCL <- numeric()
  
-for(i in 743:length(slug)){
+for(i in 1:length(slug)){
   print(i)
-  #On Mac: 
+  #On Zoe's Mac: 
   rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i])) #<-- this is for varying NARR times
   CAPE <- raster(rb, layer = 375)
   sbCAPE <- raster(rb, layer = 315)
@@ -432,7 +436,7 @@ for(i in 743:length(slug)){
 ```
 
 Add environmental data values to the group day means data frame.
-```{r}
+```{r, eval = FALSE}
 BigDays.sfdfT$avgCAPE <- avgCAPE
 BigDays.sfdfT$avgsbCAPE <- avgsbCAPE
 BigDays.sfdfT$maxCAPE <- maxCAPE
@@ -463,23 +467,6 @@ BigDays.sfdfT$maxLCL <- maxLCL
 BigDays.sfdfT$avgLCL <- avgLCL
 ```
 
-Scale the variables to make them easier to read and input for models. 
-```{r}
-BigDays.sfdfT$avgCAPE2 <- BigDays.sfdfT$avgCAPE/1000
-BigDays.sfdfT$maxCAPE2 <- BigDays.sfdfT$maxCAPE/1000
-BigDays.sfdfT$avgHLCY2 <- BigDays.sfdfT$avgHLCY/100
-BigDays.sfdfT$maxHLCY2 <- BigDays.sfdfT$maxHLCY/100
-BigDays.sfdfT$avgCIN2 <- BigDays.sfdfT$avgCIN/100
-BigDays.sfdfT$minCIN2 <- BigDays.sfdfT$minCIN/100
-BigDays.sfdfT$avgBS2 <- BigDays.sfdfT$avgBS/10
-BigDays.sfdfT$maxBS2 <- BigDays.sfdfT$maxBS/10
-BigDays.sfdfT$avgUSTM2 <- BigDays.sfdfT$avgUSTM/10
-BigDays.sfdfT$maxUSTM2 <- BigDays.sfdfT$maxUSTM/10
-BigDays.sfdfT$avgVSTM2 <- BigDays.sfdfT$avgVSTM/10
-BigDays.sfdfT$maxVSTM2 <- BigDays.sfdfT$maxVSTM/10
-BigDays.sfdfT$avgSM2 <- BigDays.sfdfT$avgSM/10
-BigDays.sfdfT$maxSM2 <- BigDays.sfdfT$maxSM/10
-```
 
 ########################
 ## Population Density ##
@@ -504,35 +491,41 @@ Download the census data:
 
 Begin with The Gridded Population of the World Volume 3 data (2000). Begin with The Gridded Population of the World Volume 3 data. This data set has population density data available beginning in 1990 and ending in 2000. We are using the 1995 data. 
 
-Population Data for 2000 through 2015 are obtained from the Gridded Population of the World, version four (GPW, v4) from the Socioeconomic Data and Applications Center at Columbia University, USA. The database contain decennial census density estimates for 2000, 2005, 2010, and 2015 represented as people per square kilometer. Densities are based on residential population. 
+Population Data for 2000 through 2015 are obtained from the Gridded Population of the World, version four (GPW, v4) from the Socioeconomic Data and Applications Center at Columbia University, USA. The database contain decennial census density estimates for 2000, 2005, 2010, and 2015 represented as people per square kilometer. Densities are based on residential population. https://sedac.ciesin.columbia.edu/data/collection/gpw-v4
 
 Load the population raster(s) and crop to defined extent. 
 ```{r}
 #1995 Data: 
-  rb <- raster("/Volumes/Zoe's Home/PhD_Program/Projects/PopDens/usadens/usads95g/w001001.adf")
+  rb <- raster("/Volumes/Work/PopDens/usadens/usads95g/w001001.adf")
   ext = raster::extent(c(-125, -67, 24, 50))
   PopDens = crop(rb, ext)
   PopDens1995 = projectRaster(PopDens, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 #2000 Data: 
-  rb <- raster(paste0("/Volumes/Zoe's Home/PhD_Program/Projects/PopDens", "/gpw-v4-population-density-rev11_2000_2pt5_min_tif/gpw_v4_population_density_rev11_2000_2pt5_min.tif"))
+  rb <- raster(paste0("/Volumes/Work/PopDens", "/gpw-v4-population-density-rev11_2000_2pt5_min_tif/gpw_v4_population_density_rev11_2000_2pt5_min.tif"))
   ext = raster::extent(c(-125, -67, 24, 50))
   PopDens = crop(rb, ext)
   PopDens2000 = projectRaster(PopDens, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 #2005 Data: 
-    rb <- raster(paste0("/Volumes/Zoe's Home/PhD_Program/Projects/PopDens", "/gpw-v4-population-density-rev11_2005_2pt5_min_tif/gpw_v4_population_density_rev11_2005_2pt5_min.tif"))
+    rb <- raster(paste0("/Volumes/Work/PopDens", "/gpw-v4-population-density-rev11_2005_2pt5_min_tif/gpw_v4_population_density_rev11_2005_2pt5_min.tif"))
   ext = raster::extent(c(-125, -67, 24, 50))
   PopDens = crop(rb, ext)
   PopDens2005 = projectRaster(PopDens, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 #2010 Data: 
-    rb <- raster(paste0("/Volumes/Zoe's Home/PhD_Program/Projects/PopDens", "/gpw-v4-population-density-rev11_2010_2pt5_min_tif/gpw_v4_population_density_rev11_2010_2pt5_min.tif"))
+    rb <- raster(paste0("/Volumes/Work/PopDens", "/gpw-v4-population-density-rev11_2010_2pt5_min_tif/gpw_v4_population_density_rev11_2010_2pt5_min.tif"))
   ext = raster::extent(c(-125, -67, 24, 50))
   PopDens = crop(rb, ext)
   PopDens2010 = projectRaster(PopDens, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 #2015 Data: 
-    rb <- raster(paste0("/Volumes/Zoe's Home/PhD_Program/Projects/PopDens", "/gpw-v4-population-density-rev11_2015_2pt5_min_tif/gpw_v4_population_density_rev11_2015_2pt5_min.tif"))
+    rb <- raster(paste0("/Volumes/Work/PopDens", "/gpw-v4-population-density-rev11_2015_2pt5_min_tif/gpw_v4_population_density_rev11_2015_2pt5_min.tif"))
   ext = raster::extent(c(-125, -67, 24, 50))
   PopDens = crop(rb, ext)
   PopDens2015 = projectRaster(PopDens, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+  
+  #2020 Data: 
+    rb <- raster(paste0("/Volumes/Work/PopDens", "/gpw-v4-population-density-rev11_2020_2pt5_min_tif/gpw_v4_population_density_rev11_2020_2pt5_min.tif"))
+  ext = raster::extent(c(-125, -67, 24, 50))
+  PopDens = crop(rb, ext)
+  PopDens2020 = projectRaster(PopDens, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 ```
 
 Use the `extract` function to obtain the population density.
@@ -575,10 +568,16 @@ BigDays.sfdfT <- cbind(BigDays.sfdfT, maxPopDens)
 BigDays.sfdfT <- cbind(BigDays.sfdfT, totalPopDens) 
 ```
 
+
+```{r}
+#save(BigDays.sfdfT, BigDayTornadoes, BigDayCentroids.df, Groups.sfdfT, GroupTornadoes, All_Tornadoes, file = "TornadoOutbreaks.RData")
+```
+
 *Get the latitude and longitude for each big day centroid*
 ```{r}
 BigDayCentroids.df <- st_centroid(BigDays.sfdfT)
 test <- as_Spatial(BigDayCentroids.df)
+library(rgdal)
 spgeo <- spTransform(test, CRS("+proj=longlat +datum=WGS84"))
 test <- st_as_sf(spgeo)
 coords <- as.data.frame(st_coordinates(test))
@@ -590,6 +589,7 @@ BigDays.sfdfT <- cbind(as.data.frame(BigDays.sfdfT), as.data.frame(coords))
 
 *Get the total population from the cities that fall within each big day*
 ```{r}
+library(USAboundaries)
 cities <- us_cities()
 BigDays.sfdfT <- st_as_sf(BigDays.sfdfT)
 
@@ -608,27 +608,11 @@ for(i in 1:dim(BigDays.sfdfT)[1]){
 }
 BigDays.sfdfT <- cbind(BigDays.sfdfT, totalPOP)
 ```
-
-```{r, eval = FALSE}
-tester <- BigDays.sfdfT[1,]
-
-BigDays.sfdfT <- BigDays.sfdfT %>%
-  mutate(STPLCL = ifelse(minLCL <= 1000, 1, ifelse(minLCL >= 2000, 0, minLCL)),
-         STPBWD = ifelse(maxBS >= 30, 1.5, ifelse(maxBS < 12.5, 0, maxBS)), 
-         STPCIN = ifelse(minCIN >= -50, 1, ifelse(minCIN <= -200, 0, minCIN)))
-
-STP <- ((BigDays.sfdfT$maxsbCAPE)/1500) * 
-       ((2000 - BigDays.sfdfT$STPLCL)/1000) * 
-       ((BigDays.sfdfT$maxHLCY)/150) * 
-       ((BigDays.sfdfT$STPBWD)/20) * 
-       ((200 + BigDays.sfdfT$STPCIN)/150)
-
-sum(is.na(BigDays.sfdfT$minLCL))
-```
-
 Save the data. 
-```{r, eval=FALSE}
-save(BigDays.sfdfT, All_Tornadoes, BigDayTornadoes, file = "BigDays.RData")
+
+```{r}
+#save(BigDays.sfdfT, BigDayTornadoes, BigDayCentroids.df, Groups.sfdfT, GroupTornadoes, All_Tornadoes, file = "TornadoOutbreaks.RData")
 #load("BigDays.RData")
 dim(BigDays.sfdfT)
 ```
+
