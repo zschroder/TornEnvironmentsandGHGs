@@ -9,18 +9,33 @@ editor_options:
 
 Welcome to RStudio. This is your typical interface for the program. The top left panel (where you currently are) is the R markdown file where you can add notes and code simultaneously. The top right panel has 5 different tabs: Environment, History, Connections, Git, and Tutorial. The Environment will list any saved variables that you have during your R session; this will be the most useful for you. The bottom left panel has the console. This is where your code will run when you try to execute it. The bottom right panel provides a lot of information about your current R session. There are 6 tabs in this panel: Files, Plots, Packages, Help, Viewer, and Presentation. The files has a list of files found within your current working directory. The plots tab will show the figures that you produce via code. The packages tab shows a list of all packages installed and/or activated in your R session. The help page shows information on any functions that you search for. You can ignore the viewer and presentation tabs. 
 
-You are using what we call an R Markdown file. This file type allows you to add notes in addition to executable code. Any code that you want to run needs to be in what we call a code chunk. Below is an example of a code chunk. 
+You are using what we call an R Markdown file. This file type allows you to add notes in addition to executable code. 
+You will find yourself constantly going back and forth between three things:
+
+(1) Writing code: You will write code to produce plots. You will also write code to load your data (get your data into R), to look quickly at tables of that data. Sometimes you will want to summarize, rearrange, subset, or augment your data, or fit a statistical model to it. You will want to be able to write that code as easily and effectively as possible.
+
+(2) Looking at output. Your code is a set of instructions that produces the output you want: a table, a model, or a figure. It is helpful to be able to see that output.
+
+(3) Taking notes. You will also write about what you are doing, and what your results mean.
+
+Any code that you want to run needs to be in what we call a code chunk. There is a set format for code chunks. They look like this:
 
 ```{r}
 
 ```
+
+Three backticks (on a U.S. keyboard, the character under the escape key) followed by a pair of curly braces containing the name of the language we are using.The format is language-agnostic, and can be used with, e.g. Python and other languages. 
+
+The backticks-and-braces part signal that a chunk of code is about to begin. You write your code as needed, and then end the chunk with a new line containing three more backticks.
+
+If you keep your notes in this way, you will be able to see the code you wrote, the output it produces, and your own commentary or clarification on it in a convenient way. Moreover, you can turn it into a good-looking document right away.
 
 If there is anything inside of the chunk that you do not want to run, then you put a # sign in front of it. 
 ```{r}
 # Like This <- this line would not run
 ```
 
-Inside of a chunk, you can execute code. To execute an entire chunk, click on the green triangle in the top right of the trunk. To runn a single line in the code chunk, highlight the line then press CMD Enter at the same time on the keyboard. R follows basic mathematical equations like so: 
+Inside of a chunk, you can execute code. To execute an entire chunk, click on the green triangle in the top right of the trunk. To run a single line in the code chunk, highlight the line then press CMD Enter at the same time on the keyboard. R follows basic mathematical equations like so: 
 ```{r}
 # Addition
 2 + 2
@@ -36,9 +51,18 @@ Inside of a chunk, you can execute code. To execute an entire chunk, click on th
 
 # Exponents
 2 ** 2
+
+sqrt(100)
+
+sin(pi)
+
+exp(1)
+
+log(10)
 ```
 
-Sometimes you need to save a variable so that you can reference it later. You can set the variable using the `=` or the `<-` symbols. When you run this, you will see the variable show up in the Environment tab in the top right panel. 
+Sometimes you need to save a variable so that you can reference it later. Use the assignment operator to save an object. You put a name on the left-hand side. You can set the variable using the `=` or the `<-` symbols. When you run this, you will see the variable show up in the Environment tab in the top right panel. Instead of sending the result to the console, we can instead assign it to an object we create:
+
 ```{r}
 x <- 2
 
@@ -46,11 +70,13 @@ x <- 2
 
 x = 2
 ```
+Case matters. `DF` is different than `df` or `Df`. Pay attention to your naming conventions!
 
-Since you have saved a variable, you can recall the saved value by typing the variable name. If you run this line, you will see a value of 2 show up in the console below.  
+Once you have saved a variable, you can recall the saved value by typing the variable name. If you run this line, you will see a value of 2 show up in the console below.  
 ```{r}
 x
 ```
+
 You can complete calculations with these variables: 
 ```{r}
 x + 53
@@ -62,7 +88,9 @@ y = 568
 x + y
 ```
 
-Data types: 
+You can create objects in R. The command `c()` is a function. It’s short for “combine” or “concatenate”. The `c()` function is useful for getting a small amount of data into R. The function combines (concatenates) items (elements).  It will take a sequence of comma-separated things inside the parentheses and join them together into a vector where each element is still individually accessible.
+
+Creating objects. Objects have specific data types: 
 ```{r}
 # Character data: 
 letters <- c("A", "B", "C", "D", "E")
@@ -95,65 +123,130 @@ numbers / integers
 numbers ** integers
 ```
 
-Loading outside data: 
+## Applying a function to an object: 
 
-Reading .csv files
+Once the data are stored in an object, you use functions on them. R comes with all sorts of functions that you can apply to your counts data.
+```{r}
+# total of values in the numbers object: 
+sum(numbers)
+
+# length of the data vector:
+length(numbers)   
+
+# average value of the numbers vector: 
+sum(numbers)/length(numbers) 
+
+# put the values in order, least to greatest
+sort(numbers)
+
+# minimum value in numbers vector:
+min(numbers)
+
+# maximum value in numbers vector:
+max(numbers)
+
+# range of value in numbers vector, min and max value:
+range(numbers)
+
+# lagged and iterated differences between the value and number before it:
+diff(numbers)
+
+# average value of the numbers vector: 
+mean(numbers)
+
+# variance of the numbers vector: 
+var(numbers)
+
+# standard deviation of the numbers vector: 
+sd(numbers)
+
+# median value of the numbers vector:
+median(numbers)
+
+#cumulative sum of the numbers vector:
+cumsum(numbers)
+```
+
+## Loading outside data: 
+
+Reading .csv files from an excel spread sheet: 
 ```{r}
 Torn.dat <- read.csv("1950-2022_actual_tornadoes.csv")
 ```
 
-Reading .RData files
-```{r}
+Reading .RData files. These are provided to you by ME :)
+```{r, eval = FALSE}
 load("TornEnv.RData")
 ```
 
-Accessing components of the data frame: 
-```{r}
-# Get the dimensions of the data frame
+## Accessing components of the data frame: 
 
+Getting the dimensions of the data frame. The first number is the number of rows; the second number is the number of columns in the data frame.  
+```{r}
 dim(Torn.dat)
 
 # 68701 rows
 # 29 columnns
 ```
 
+Get the list of column names and their associated data types: 
 ```{r}
-#get list of column names and data types: 
-
 str(Torn.dat)
 ```
 
+Get the top 10 rows of the data frame using the `head()` function. Get the bottom 10 rows of the data frame using the `tail()` function. 
 ```{r}
-# Get the top 10 rows of the data frame: 
-
+# First 10 rows
 head(Torn.dat)
 
-# Get the bottom 10 rows of the data frame: 
-
+# Last 10 rows
 tail(Torn.dat)
 ```
+
+Accessing specific data in the data frame using a name of the column, row, or both. Type the name of the dataset, then the `$` sign, then the name of the column: 
 ```{r}
-# Access a column in the data frame using a name of the column: 
+# Access a column: 
 
 Torn.dat$mag #magnitude of the tornadoes
 
-#Access a row
+# Access a row:
 
 Torn.dat[1, ] # Row 1 in the data frame
 
-# Access a specific value in a known row and column
+# Access a specific value in a known row and column:
 
 Torn.dat$mag[50] # OR
 Torn.dat[50, 11] # mag is the 11 column
 ```
+
+You can also get summarized statistical values of each column in the data frame. The `summary()` function provides summary statistics for each column in your data frame. The statistics include output the mean, median, minimum, maximum, along with the first quartile and third quartile values.
+
+```{r}
+summary(Torn.dat)
+```
+
+Columns with missing values get a row output from the `summary()` function indicating the number of them (NA's).
+
 ## Installing and Loading Packages: 
 
-**It MUST have quotation marks around the package name.**
-```{r}
+You do almost everything in R using functions. The code you write will be more or less complex depending on the task you want to accomplish. Families of useful functions are bundled into packages that you can install. 
+
+Packages save you from reinventing the wheel. They make it so that you do not, for example, have to figure out how to write code from scratch to draw a shape on screen, or load a data file into memory. Packages are also what allow you to build on the efforts of others in order to do your own work. There are many packages and we will make use of several throughout this project
+
+You can get a list of R packages here: https://cran.r-project.org/web/packages/available_packages_by_name.html
+
+The first time that you use a specific package on a computer or new version of R, you MUST install the package using the `install.packages()` function in R. The name of the package goes inside the parenthesis. It MUST have quotation marks around the package name.
+
+```{r, eval = FALSE}
 install.packages("dplyr")
 ```
 
-Accessing the functions in an installed package:
+## Functions come in packages (libraries)
+
+In each package, there are a set of functions. Think of a function as a special kind of object that can perform actions for you. It produces output based on the input that it receives. Functions can be recognized by the parentheses at the end of their names. This distinguishes them from other objects, such as single numbers, named vectors, tables of data, and so on. The parentheses are what allow you to send information to the function. Most functions accept one or more named arguments. A function’s arguments are the things it needs to know in order to do something.
+
+However to access the functions in the packages, you MUST load the package into your R session everytime you open a new R session. You can load the package using the `library()` function, or “reaching in” to them and pulling a useful function from them directly (i.e., `package::function()`).
+
 ```{r}
 library(dplyr)
 
@@ -164,17 +257,44 @@ library("dplyr")
 
 ## Manipulating data in a data frame:
 
-Functions in dplyr package: 
+The **dplyr** package has functions ('verbs') that perform common operations on data frames. Selecting specific columns, filtering on rows, re-ordering rows, adding new columns, and summarizing data. For your work, you will use this package A LOT! The pipe symbol (%>%) is extremely important for the dpylr package functions. 
 
-Pipe symbol %>%
+The syntax of the verb functions in the **dplyr** package are all the same. These properties make it easy to chain together many simple lines of code to do something complex.
 
-`summarize` function is a great way to make tables of information about your data!
+* The first argument is a data frame. This argument is implicit when using the `%>%` operator.
+* The subsequent arguments describe what to do with the data frame. We refer to columns in the data frame directly (without using `$`).
+* The result is a new data frame
+
+The important **dplyr** verbs are
+
+Verb          | Description
+-------------:|:-----------
+`select()`    | selects columns; pick variables by their names
+`filter()`    | filters rows; pick observations by their values
+`arrange()`   | re-orders the rows
+`mutate()`    | creates new columns; create new variables with functions of existing variables
+`summarize()` | summarizes values; collapse many values down to a single summary
+`group_by()`  | allows operations to be grouped
+
+The five functions form the basis of a grammar for data. At the most basic level, we can only alter a data frame in five useful ways: we can reorder the rows (`arrange()`), pick observations and variables of interest (`filter()` and `select()`), add new variables that are functions of existing variables (`mutate()`), or collapse many values to a summary (`summarise()`).
+
+The `summarize()` (or `summarise()`) function allows reduces the data frame using summary statistics. We've seen a few summary functions already including `sum()`, `sd()`, `min()`, `max()`, `var()`, `range()`, `median()`. Others include:
+
+Summary function  | Description
+-----------------:|:-----------
+`n()`             | Length of the column
+`first()`         | First value of the column
+`last()`          | Last value of the column
+`n_distinct()`    | Number of distinct values
+
+The `summarize` function is a great way to make tables of information about your data!
 ```{r}
 Torn.dat %>%
   group_by(mag) %>% #groups data by the magnitude column
   summarize(totalcounts = n()) #calculates the number of tornadoes in each group (i.e., mag)
 ```
 
+Using the `filter()` function: 
 ```{r}
 # Filter tornadoes with a magnitude greater than EF 4
 Torn.dat %>%
@@ -196,6 +316,7 @@ Torn.dat %>%
   filter(mag != 4)
 ```
 
+Use the `arrange()` function: 
 ```{r}
 Torn.dat %>%
   arrange(mag) # least to greatest
@@ -203,18 +324,38 @@ Torn.dat %>%
 Torn.dat %>%
   arrange(desc(mag)) # greatest to least
 ```
-`mutate` creates a new column in the data frame. In order to save the added columns in the data frame, you must re-save the object. 
+
+Use the `mutate()` function. This creates a new column in the data frame. In order to save the added columns in the data frame, you must re-save the object. 
 ```{r}
 Torn.dat <- Torn.dat %>%
   mutate(cas = inj + fat)
 ```
 
-## Making figures with ggplot2: 
+## Visualizing Data: 
 
+**Making figures with ggplot2:** 
+
+We begin with visualizing data using **ggplot2**. There are three essential things to learn:
+
+1. How to create graphs with a reusable **ggplot2** template
+2. How to add variables to a graph with aesthetics
+3. How to select the 'type' of your graph with _geoms_
+
+Before we make any graphs, you MUST load the package into ggplot2. Remember `library()`: 
 ```{r}
 #install.packages("ggplot2")
 library(ggplot2)
 ```
+
+### A graphing workflow
+
+The code above follows the common workflow for making graphs with **ggplot2**. To make a graph, you:
+
+1. Start the graph with `ggplot()`
+
+The first function, `ggplot()`, creates a coordinate system that you can add layers to. The first argument (a thing that goes between the parentheses) of the `ggplot()` function is the dataset to use in the graph.
+
+2. Add elements to the graph with a `geom_` function
 
 **Most Used**
 geom_line         geom_histogram
@@ -223,14 +364,18 @@ geom_bar          geom_point
 geom_ribbon       geom_abline
 geom_hline        geom_boxplot
 geom_polygon
+
+3. Select variables with the `mapping = aes()` argument
+
 ```{r}
 #Set up data for a bar graph
 dat <- Torn.dat %>%
   group_by(yr) %>%
-  summarize(nT = n())
+  summarize(nT = n(),
+            maxmag = max(mag))
 ```
 
-As a bar graph
+As a bar graph:
 ```{r}
 ggplot(dat, aes(x = yr, y = nT)) + 
   # Basic bargraph with year on the x axis and number of tornadoes on the y axis
@@ -248,7 +393,7 @@ ggplot(dat, aes(x = yr, y = nT)) +
   # Add a simple black and white background for the bar graph
   theme_bw() +
   # Change the axis labels
-  xlab("Decade") +
+  xlab("Year") +
   ylab("Number of Tornadoes") +
   # Change the text size on the axis ticks and the axis labels
   theme(axis.text = element_text(size = 14), 
@@ -276,7 +421,7 @@ ggplot(dat, aes(x = yr, y = nT)) +
               se = FALSE,
               color = "red") +
   theme_bw() +
-  xlab("Decade") +
+  xlab("Year") +
   ylab("Number of Tornadoes") +
   theme(axis.text = element_text(size = 14), 
         axis.title = element_text(size = 16), 
@@ -289,7 +434,7 @@ ggplot(dat, aes(x = yr, y = nT)) +
                      breaks = seq(1950, 2023, 10))
 ```
 
-As a dot plot
+As a dot plot:
 ```{r}
 ggplot(dat, aes(x = yr, y = nT)) + 
   # Basic dot plot with year on the x axis and number of tornadoes on the y axis
@@ -302,7 +447,7 @@ ggplot(dat, aes(x = yr, y = nT)) +
               se = FALSE,
               color = "red") +
   theme_bw() +
-  xlab("Decade") +
+  xlab("Year") +
   ylab("Number of Tornadoes") +
   theme(axis.text = element_text(size = 14), 
         axis.title = element_text(size = 16), 
@@ -315,35 +460,67 @@ ggplot(dat, aes(x = yr, y = nT)) +
                      breaks = seq(1950, 2023, 10))
 ```
 
+As a boxplot: 
+```{r}
+ggplot(dat, aes(x = maxmag, y = nT, group = maxmag)) + 
+  # Basic dot plot with year on the x axis and number of tornadoes on the y axis
+  geom_boxplot() +
+  theme_bw() +
+  xlab("Maximum Magnitude") +
+  ylab("Number of Tornadoes") +
+  theme(axis.text = element_text(size = 14), 
+        axis.title = element_text(size = 16), 
+        legend.text = element_text(size = 16)) +
+  scale_y_continuous(expand = c(0, 0),  
+                     limits=c(0, 1850), 
+                     breaks = seq(0, 1850, 250)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(2, 6), 
+                     breaks = seq(3, 5, 1))
+```
+
 ## Making figures with tmap:
+
+The **tmap** package is a flexible, layer-based, and easy-to-use approach for creating thematic maps (e.g., choropleths and bubble maps). It is based on the grammar of graphics, and the syntax resembles the syntax of **ggplot2**. Functions in the **tmap** package take spatial data like simple feature data frames.
+
+The format of the **tmap** objects (meoms) are like those of the **ggplot2** geometric objects (geoms) making it easy to get to a publication-quality map. Fine details are worked out in production.
 
 ```{r}
 #install.packages("tmap")
 library(tmap)
 ```
 
-Get USA data using a specialty package from github: 
+Get USA data using a specialty package from github called `USAboundaries()`. This can be used to get a base map for your figures. 
+
 ```{r}
 #remotes::install_github("ropensci/USAboundaries")
 #remotes::install_github("ropensci/USAboundariesData")
 library(USAboundaries)
 ```
 
-Names of datasets: 
+Names of datasets in the **USAboundaries** package: 
 * us_cities
 * us_congressional
 * us_counties
 * us_states
 * us_zipcodes
+
+Get a the borders for the 48 contiguous states: 
 ```{r}
 sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
 stateBorders <- us_states(states = sts)
 ```
 
+Make a simple features data frame: 
 ```{r}
-library(sp)
-Torn.dat <- st_as_sf(Torn.dat)
+library(sf)
 
+sp::coordinates(Torn.dat) <- ~ slon + slat
+Torn.dat <- st_as_sf(Torn.dat)
+```
+
+Making a map using tmap: 
+```{r}
 tm_shape(stateBorders,  
          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
   # Adjust the border color (col) and transparency (alpha)
@@ -362,9 +539,11 @@ tm_shape(stateBorders,
   # Adjust the position of the scale bar and compass (attr.position) and add space between the map and edge of the figure border
   tm_layout(attr.position = c("left", "bottom"), 
             inner.margins = c(.1, .1, .1, .1)) +
+  # Add a secondary layer of data which will be plotted on top of the 1st (US map)
 tm_shape(Torn.dat, 
          is.master = TRUE, 
          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
+  # plots the tornado data as dots/points
   tm_bubbles(size = 0.1, 
              col = "mag", 
              breaks = seq(0, 5, by=1),
@@ -378,4 +557,117 @@ tm_shape(Torn.dat,
               legend.text.size = 1, legend.width = -0.2)
 ```
 
+## One-sample test
 
+The `t.test()` function is found in the **UsingR** package. 
+```{r}
+#install.packages("UsingR")
+library(UsingR)
+```
+
+The interest is whether the population mean (which is unknown) is different than some value $M$. In this case the null hypothesis (what we want to disprove) is that the population mean equals $M$.
+
+In textbook notation, the test is written as
+$$
+\hbox{H}_0: \mu = M \\
+\hbox{H}_A: \mu \neq M
+$$
+where H sub naught is the null hypothesis stating that the unknown population mean ($\mu$) equals a specific value $M$ and where H sub A is the alternative hypothesis stating that the unknown population mean does equal $M$.
+
+The $p$-value summarizes the evidence in support of the null hypothesis. The smaller the $p$-value, the less evidence there is in support of the null hypothesis. The interpretation of the $p$-value is stated as evidence AGAINST the null hypothesis. This is because our interest lies in the null hypothesis being wrong. 
+
+$p$-value        | Statement of evidence against the null
+---------------- | ---------------------
+less than  .01   | convincing
+.01 - .05        | moderate 
+.05 - .15        | suggestive, but inconclusive
+greater than .15 | no
+
+The $p$-value is the area under the tails of the $t$ distribution. The distribution describes how the $t$ statistic varies. The $t$ statistic is given by
+$$
+t = \frac{\bar x - \mu_o}{s/\sqrt{n}}
+$$
+again where $s$ is the standard deviation of the sample values and $n$ is the sample size. The denominator is the standard error of the mean (standard deviation divided by square root of the sample size). The $t$ value is the density of the $t$ distribution centered on $\mu_o$ with $n-1$ degrees of freedom.
+
+The $p$-value comes from the `pt()` function, which determines the area under the $t$ distribution curve to the left of a particular value. The curve is obtained using the `dt()` function (density function).  
+
+Example: Stronger hurricanes
+
+Are hurricanes getting stronger? Let's say we know that the strongest hurricanes in the past had a average minimum pressure of 915 mb.
+```{r}
+Names <- c("Allen", "Gloria", "Gilbert", "Hugo", "Opal", "Mitch", "Isabel", "Ivan", "Katrina", "Rita", "Wilma", "Dean", "Irma", "Maria")
+Year <- c(1980, 1985, 1988, 1989, 1995, 1998, 2003, 2004, 2005, 2005, 2005, 2007, 2017, 2017)
+minP <- c(899, 919, 888, 918, 916, 905, 915, 910, 902, 895, 882, 905, 914, 908)
+hur.df <- data.frame(Year, Names, minP, Basin = "ATL")
+```
+
+We are interested in whether the top 14 Atlantic hurricanes since 1980 have a minimum pressure less than 915 mb. So our null hypothesis is that the minimum pressure is 915 mb and the alternative hypothesis is that it is less than 915 (lower pressure means stronger hurricane).
+
+Start with a plot.
+```{r}
+ggplot(hur.df, aes(x = "", y = minP)) + 
+  geom_boxplot() +
+  geom_point(color = "blue") +
+  ylab("Minimum Pressure (mb)") + xlab("") +
+  geom_hline(aes(yintercept = 915), color = "red") +
+  scale_y_continuous() +
+  theme_minimal()
+mean(hur.df$minP)
+```
+
+We see that the data support the idea that the top hurricanes are stronger than 915 mb. We formally test by
+```{r}
+t.test(hur.df$minP, mu = 915)
+```
+
+Here we state that there is convincing evidence (p-value) that the strongest hurricanes since 1980 are stronger that those in the past.
+
+## Two-sample test
+
+With two data samples the null hypothesis is that they having the same mean and we assume they both have a normal distribution. We test the null hypothesis that the two samples have the same population mean by computing the $t$ value. In this case, the $t$ value is the difference in sample means divided by the standard error of the difference in means (SEDM).
+
+There are two ways to calculate SEDM. 
+(1) Assume equal variance: use the pooled standard deviation ($s$). Under the null hypothesis, the $t$ value will follow a $t$ distribution with n1 + n2 - 2 degrees of freedom (df). 
+
+(2) Don't assume equal variances (this is the default assumption). Under the null hypothesis, the $t$ statistic approximates a $t$ distribution. In this case it is called the Welch procedure. In this case the degrees of freedom is not an integer.
+
+Usually the two methods give similar results unless group sizes and variances differ widely among the two samples.
+
+Example: Are hurricanes that occur over the eastern North Pacific weaker than those that occur over the Atlantic? Let's look at the evidence. Here are the 17 top performing hurricanes from the eastern North Pacific since 1980.
+
+```{r}
+Names <- c("Trudy", "Gilma", "Olivia", "Guillermo", "Linda", "Juliette", "Elida", "Hernan", "Kenna", "Ioke", "Rick", "Celia", "Marie", "Odile", "Patricia", "Lane", "Walaka")
+Year <- c(1990, 1994, 1994, 1997, 1997, 2001, 2002, 2002, 2002, 2006, 2009, 2010, 2014, 2014, 2015, 2018, 2018)
+minP <- c(924, 920, 923, 919, 902, 923, 921, 921, 913, 915, 906, 921, 918, 918, 872, 922, 920)
+df <- data.frame(Year, Names, minP, Basin = "NEP")
+hur.df <- rbind(hur.df, df)
+```
+
+```{r}
+#install.packages("permute")
+library(permute)
+```
+
+Null Hypothesis: The minimum pressures are the same between the Basins. 
+Alternative Hypothesis: They are not the same between Basin. 
+```{r}
+t.test(minP ~ Basin, data = hur.df, var.equal = TRUE)
+```
+The p-value is 0.03287. There is moderate evidence to reject the null. Moderate evidence that the minimum pressure are different between the basins. 
+
+## Practice & Help
+
+* Standard learning path: 
+1. Install R
+2. Install RStudio
+3. Google "How do I [THING I WANT TO DO] in R?"
+
+* Install the package **swirl**. Type `swirl()` and select R Programming > Vectors, Missing Values, Subsetting Vectors, and Matrices and Data Frames
+
+* The online book [R for Data Science](http://r4ds.had.co.nz/) by Grolemund and Wickham is an excellent resource for getting started with using R.
+
+* For additional practice please check out http://r4ds.had.co.nz/index.html.
+
+* Cheat sheets http://rstudio.com/cheatsheets
+
+* Another example. See R for Data Science book. https://r4ds.had.co.nz/transform.html
