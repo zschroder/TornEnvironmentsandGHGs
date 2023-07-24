@@ -612,7 +612,6 @@ Save the data.
 
 ```{r}
 #save(BigDays.sfdfT, BigDayTornadoes, BigDayCentroids.df, Groups.sfdfT, GroupTornadoes, All_Tornadoes, file = "TornadoOutbreaks.RData")
-#load("BigDays.RData")
-dim(BigDays.sfdfT)
+load("TornadoOutbreaks.RData")
 ```
 
