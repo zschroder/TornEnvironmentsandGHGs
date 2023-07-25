@@ -1,0 +1,6 @@
+---
+title: "Heidi_ExploringTrends"
+author: "Heidi Erfourth and Zoe Schroder"
+date: "2023-07-25"
+output: html_document
+---
