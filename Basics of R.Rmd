@@ -347,7 +347,7 @@ Torn.dat <- read.csv("1950-2022_actual_tornadoes.csv")
 
 Reading .RData files. These are provided to you by ME :)
 ```{r, eval = FALSE}
-load("TornEnv.RData")
+load("TornadoOutbreaks.RData")
 ```
 
 ```{r}
