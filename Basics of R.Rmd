@@ -124,7 +124,7 @@ Ghost1 <- Boo1
 
 Case matters. `DF` is different than `df` or `Df`. Pay attention to your naming conventions!
 ```{r}
-
+#Heidi is the BEST!
 ```
 
 ```{r}
