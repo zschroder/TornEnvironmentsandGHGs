@@ -24,6 +24,11 @@ Any code that you want to run needs to be in what we call a code chunk. There is
 
 ```
 
+```{r}
+#Keyboard Shortcut = cmd+r
+```
+
+
 Three backticks (on a U.S. keyboard, the character under the escape key) followed by a pair of curly braces containing the name of the language we are using.The format is language-agnostic, and can be used with, e.g. Python and other languages. 
 
 The backticks-and-braces part signal that a chunk of code is about to begin. You write your code as needed, and then end the chunk with a new line containing three more backticks.
@@ -34,6 +39,11 @@ If there is anything inside of the chunk that you do not want to run, then you p
 ```{r}
 # Like This <- this line would not run
 ```
+
+```{r}
+# is from commenting inside the code chunk
+```
+
 
 Inside of a chunk, you can execute code. To execute an entire chunk, click on the green triangle in the top right of the trunk. To run a single line in the code chunk, highlight the line then press CMD Enter at the same time on the keyboard. R follows basic mathematical equations like so: 
 ```{r}
@@ -61,6 +71,40 @@ exp(1)
 log(10)
 ```
 
+```{r}
+#Addition
+2+3
+
+#Subtraction
+3-2
+
+#Multiplication
+3*2
+
+#Divsion
+3/2
+
+#Exponents
+3**2 #Like python need **
+
+#Sqaure Root
+sqrt(4)
+
+#Trig
+sin(45)*(pi/180) #convert radians to degrees
+cos(45)
+tan(45)
+
+#exponential aka baby e
+exp(4)
+
+#Logs
+log(4)
+
+
+```
+
+
 Sometimes you need to save a variable so that you can reference it later. Use the assignment operator to save an object. You put a name on the left-hand side. You can set the variable using the `=` or the `<-` symbols. When you run this, you will see the variable show up in the Environment tab in the top right panel. Instead of sending the result to the console, we can instead assign it to an object we create:
 
 ```{r}
@@ -70,12 +114,39 @@ x <- 2
 
 x = 2
 ```
+
+```{r}
+Boo = 1
+Boo1 <- 2
+Ghost = Boo
+Ghost1 <- Boo1
+```
+
 Case matters. `DF` is different than `df` or `Df`. Pay attention to your naming conventions!
+```{r}
+
+```
+
+```{r}
+Boo3 =4
+boo3 =5
+Ghost3 = boo3
+Ghost4 <- Boo3
+```
+
 
 Once you have saved a variable, you can recall the saved value by typing the variable name. If you run this line, you will see a value of 2 show up in the console below.  
 ```{r}
 x
 ```
+
+```{r}
+Boo
+Boo1
+boo3
+Boo3
+```
+
 
 You can complete calculations with these variables: 
 ```{r}
@@ -87,6 +158,16 @@ y = 568
 
 x + y
 ```
+
+```{r}
+Boo5 = Boo1 + boo3
+
+Ghost5 <- Boo5
+
+Ghost5
+
+```
+
 
 You can create objects in R. The command `c()` is a function. It’s short for “combine” or “concatenate”. The `c()` function is useful for getting a small amount of data into R. The function combines (concatenates) items (elements).  It will take a sequence of comma-separated things inside the parentheses and join them together into a vector where each element is still individually accessible.
 
@@ -105,6 +186,29 @@ integers <- as.integer(numbers)
 factors <- as.factor(letters)
 ```
 
+```{r}
+Ghosts = c(2,1,4,3)
+
+Ghosts2 = c("A","B","C","D")
+
+boo = as.integer(Ghosts) #use as.integer when dealing with numbers
+
+boo
+
+boo1 = as.factor(Ghosts2) #use as.factor when dealing with letters
+
+boo1 
+
+boo[2] 
+
+boo1[3]
+
+Ghosts2[4]
+
+#to call an individual value inside the vector use [place number]
+```
+
+
 Calculations with data lists:
 ```{r}
 # Addition of data lists
@@ -122,6 +226,24 @@ numbers / integers
 # Exponents of data lists
 numbers ** integers
 ```
+
+```{r}
+#Addition 
+Ghosts + boo
+
+#Subtraction
+Ghosts - boo
+
+#Multiplication
+Ghosts * boo
+
+#Division
+Ghosts / boo
+
+#Exponents
+Ghosts ** boo
+```
+
 
 ## Applying a function to an object: 
 
@@ -167,6 +289,50 @@ median(numbers)
 cumsum(numbers)
 ```
 
+```{r}
+#adding all values together in vector
+sum(Ghosts)
+
+#how long is the data vector
+length(Ghosts)
+
+#average value in vector
+sum(Ghosts) / length(Ghosts)
+
+  #OR
+
+mean(Ghosts)
+
+#in order of least to greatest
+sort(Ghosts)
+
+#min value of vector
+min(Ghosts)
+
+#max value in vector
+max(Ghosts)
+
+#what is the range of the vector
+range(Ghosts)
+
+#difference between each number 
+diff(Ghosts)
+
+#variance in numbers
+var(Ghosts)
+
+#standard deviation of numbers
+sd(Ghosts)
+
+#median value
+median(Ghosts)
+
+#cumulative sum of the numbers 
+cumsum(Ghosts) #this is a sequence (a,a+b,a+b+c,....)
+
+```
+
+
 ## Loading outside data: 
 
 Reading .csv files from an excel spread sheet: 
@@ -174,10 +340,23 @@ Reading .csv files from an excel spread sheet:
 Torn.dat <- read.csv("1950-2022_actual_tornadoes.csv")
 ```
 
+```{r}
+#Define Value = read.csv("File Name")
+```
+
+
 Reading .RData files. These are provided to you by ME :)
 ```{r, eval = FALSE}
 load("TornEnv.RData")
 ```
+
+```{r}
+#ignore eval = FALSE this is used to prevent the code from being evlauted
+
+#load("dataset file name.RData")
+
+```
+
 
 ## Accessing components of the data frame: 
 
@@ -188,11 +367,14 @@ dim(Torn.dat)
 # 68701 rows
 # 29 columnns
 ```
+ -> dim = dimensions
+ -> rows then columns
 
 Get the list of column names and their associated data types: 
 ```{r}
 str(Torn.dat)
 ```
+
 
 Get the top 10 rows of the data frame using the `head()` function. Get the bottom 10 rows of the data frame using the `tail()` function. 
 ```{r}
@@ -346,6 +528,13 @@ Before we make any graphs, you MUST load the package into ggplot2. Remember `lib
 #install.packages("ggplot2")
 library(ggplot2)
 ```
+
+```{r}
+#ggplot2 package not working 
+
+```
+
+
 
 ### A graphing workflow
 
