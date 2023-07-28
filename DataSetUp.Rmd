@@ -187,14 +187,14 @@ Groups.sfdfT <- All_Tornadoes %>%
             LastcDate = last(cDate),
             ncD = n_distinct(cDate),
             nT = n(),
-            n0 = sum(mag == 0),
-            n1 = sum(mag == 1),
-            n2 = sum(mag == 2),
-            n3 = sum(mag == 3),
-            n4 = sum(mag == 4),
-            n5 = sum(mag == 5),
-            ATP = sum(ED),
-            ATP_TW = paste(round(ATP/10^12), "TW"),
+            n0 = sum(mag == 0, na.rm = TRUE),
+            n1 = sum(mag == 1, na.rm = TRUE),
+            n2 = sum(mag == 2, na.rm = TRUE),
+            n3 = sum(mag == 3, na.rm = TRUE),
+            n4 = sum(mag == 4, na.rm = TRUE),
+            n5 = sum(mag == 5, na.rm = TRUE),
+            ATP = sum(ED, na.rm = TRUE),
+            ATP_TW = ATP/10^12,
             maxEF = max(mag),
             nD = n_distinct(date),
             StartTime = first(DateTime),
@@ -208,9 +208,9 @@ GroupTornadoes <- All_Tornadoes %>%
   filter(groupNumber %in% Groups.sfdfT$groupNumber)
 ```
 
-########################################
-## Extract Big Days from Large Groups ##
-########################################
+##################################
+## Extract Big Days from Groups ##
+##################################
 
 Filter individual tornadoes to remove those that are not part of a large group. Group by group number and convective dates. Remove days having fewer than 10 tornadoes.
 ```{r, eval = FALSE}
@@ -218,17 +218,17 @@ BigDays.sfdfT <- All_Tornadoes %>%
   filter(groupNumber %in% Groups.sfdfT$groupNumber) %>%
   group_by(groupNumber, cDate) %>%
   summarize(nT = n(),
-            n0 = sum(mag == 0),
-            n1 = sum(mag == 1),
-            n2 = sum(mag == 2),
-            n3 = sum(mag == 3),
-            n4 = sum(mag == 4),
-            n5 = sum(mag == 5),
-            ATP = sum(ED),
+            n0 = sum(mag == 0, na.rm = TRUE),
+            n1 = sum(mag == 1, na.rm = TRUE),
+            n2 = sum(mag == 2, na.rm = TRUE),
+            n3 = sum(mag == 3, na.rm = TRUE),
+            n4 = sum(mag == 4, na.rm = TRUE),
+            n5 = sum(mag == 5, na.rm = TRUE),
+            ATP = sum(ED, na.rm = TRUE),
             maxATP = max(ED),
-            avgATP = mean(ED),
-            GroupDayCas = sum(cas),
-            GroupDayFat = sum(fat),
+            avgATP = mean(ED, na.rm = TRUE),
+            GroupDayCas = sum(cas, na.rm = TRUE),
+            GroupDayFat = sum(fat, na.rm = TRUE),
             StartTime_CST = first(DateTime),
             EndTime_CST= last(DateTime),
             StartTime_UTC = StartTime_CST + 21600,
@@ -265,8 +265,11 @@ BigDays.sfdfT$NARRtime <- (align.time(BigDays.sfdfT$StartTime_UTC, n = (60 * 60 
 
 Split the NARR date and time into their individual variables. Then bind the columns for BigDays.sfdfT. NOTE: cannot do a mutate because 00Z produces NAs. DON'T USE!
 ```{r, eval = FALSE}
-NARRday = format(as.POSIXct(strptime(BigDays.sfdfT$NARRtime,"%Y-%m-%d %H:%M:%S",tz="")) ,format = "%Y/%m/%d")
+NARRday = format(as.POSIXct(strptime(BigDays.sfdfT$StartTime_UTC,"%Y-%m-%d %H:%M:%S",tz="")) ,format = "%Y/%m/%d")
+NARRday[is.na(NARRday)] <- "2001/04/22"
+
 NARRZtime = format(as.POSIXct(strptime(BigDays.sfdfT$NARRtime,"%Y-%m-%d %H:%M:%S",tz="")) ,format = "%H")
+NARRZtime[is.na(NARRZtime)] <- "00"
 
 BigDays.sfdfT <- cbind(BigDays.sfdfT, NARRday, NARRZtime)
 ```
@@ -349,6 +352,14 @@ slug2 <- BigDays.sfdfT$slug2
 library(raster)
 ```
 
+Check the raster layers for accuracy: 
+```{r}
+i = 1
+rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))
+x <- as.list(rb)
+x[[375]]
+```
+
 Read the grib files as raster bricks and assign the CAPE and helicity variables to separate raster layers. Extract the average (and extreme) environmental values within each of the big days in large groups hulls.
 ```{r, eval = FALSE}
 avgCAPE <- numeric()
@@ -384,22 +395,22 @@ for(i in 1:length(slug)){
   print(i)
   #On Zoe's Mac: 
   rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i])) #<-- this is for varying NARR times
-  CAPE <- raster(rb, layer = 377) #375
-  sbCAPE <- raster(rb, layer = 317) #315
+  CAPE <- raster(rb, layer = 375) 
+  sbCAPE <- raster(rb, layer = 315) 
   DEW <- raster(rb, layer = 290)
   MR <- raster(rb, layer = 289)
-  HLCY <- raster(rb, layer = 325) #323
-  CIN <- raster(rb, layer = 378) #376
-  sbCIN <- raster(rb, layer = 318) #316
-  USTM <- raster(rb, layer = 326) #324
-  VSTM <- raster(rb, layer = 327) #325
+  HLCY <- raster(rb, layer = 323) 
+  CIN <- raster(rb, layer = 376) 
+  sbCIN <- raster(rb, layer = 316) 
+  USTM <- raster(rb, layer = 324) 
+  VSTM <- raster(rb, layer = 325) 
   UGRD500 <- raster(rb, layer = 117) 
   VGRD500 <- raster(rb, layer = 118) 
   UGRD850 <- raster(rb, layer = 206) 
   VGRD850 <- raster(rb, layer = 207)
   UGRDsfc <- raster(rb, layer = 293) 
   VGRDsfc <- raster(rb, layer = 294)  
-  LCL <- raster(rb, layer = 320) #319
+  LCL <- raster(rb, layer = 318) 
   SM <- sqrt(USTM^2 + VSTM^2)
   RATIO <- CAPE/abs(CIN)
   BS_deep <- sqrt(((UGRD500 - UGRDsfc)**2) + ((VGRD500 - VGRDsfc)**2))
