@@ -354,8 +354,10 @@ library(raster)
 
 Check the raster layers for accuracy: 
 ```{r}
-i = 1
-rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))
+i = 832
+rb <- brick(paste0("/Users/zoesearcy/Desktop/ResearchProjects/TornEnvironmentsandGHGs/NARR21_22/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))
+  
+  #"/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))
 x <- as.list(rb)
 x[[375]]
 ```
