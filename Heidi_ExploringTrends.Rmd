@@ -4,3 +4,13 @@ author: "Heidi Erfourth and Zoe Schroder"
 date: "2023-07-25"
 output: html_document
 ---
+
+“Exploring trends in tornado outbreak environments and greenhouse gas concentrations” 
+
+`Pursue publication:` International Journal of Climatology
+                      https://mc.manuscriptcentral.com/joc 
+
+**Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
+
+
+ 
