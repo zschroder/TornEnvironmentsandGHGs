@@ -36,6 +36,14 @@ Load the outbreak data for this project:
 load("TornadoOutbreaks.RData")
 ```
 
+```{r}
+
+```
+
+
+
+## Model Collinearity: 
+
 Correlation Matrix -- 10 year averages: 
 ```{r}
 CAPE_10year <- BigDays.sfdfT %>%
