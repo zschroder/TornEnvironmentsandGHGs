@@ -4,3 +4,136 @@ author: "Zoe Schroder and Heidi Erfourth"
 date: "2023-07-25"
 output: html_document
 ---
+
+Journal of Climate Dynamics (no APC charges Apply!)
+https://www.springer.com/journal/382/how-to-publish-with-us#Fees%20and%20Funding 
+
+Projections you may need: 
+```{r}
+merc <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+US_LCC <- "+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs"
+```
+
+Coordinate Reference Systems you may need:
+https://spatialreference.org/ref/esri/usa-contiguous-lambert-conformal-conic/
+```{r}
+WGS84 <- 4326
+```
+
+Install the packages for this project: 
+```{r}
+suppressMessages(library(sf))
+suppressMessages(library(dplyr))
+suppressMessages(library(lubridate))
+suppressMessages(library(lutz))
+suppressMessages(library(xts))
+suppressMessages(library(chron))
+suppressMessages(library(sp))
+```
+
+Load the outbreak data for this project: 
+```{r}
+load("TornadoOutbreaks.RData")
+```
+
+Correlation Matrix -- 10 year averages: 
+```{r}
+CAPE_10year <- BigDays.sfdfT %>%
+  select(maxCAPE, 
+         CO2_10year,
+         CH4_10year, 
+         O3_10year,
+         AGGI_10year)
+CAPE_10year <- st_drop_geometry(CAPE_10year)
+cor(CAPE_10year)
+```
+
+```{r}
+DLBS_10year <- BigDays.sfdfT %>%
+  select(maxBS_deep, 
+         CO2_10year,
+         CH4_10year, 
+         O3_10year,
+         AGGI_10year)
+DLBS_10year <- st_drop_geometry(DLBS_10year)
+cor(DLBS_10year)
+```
+
+```{r}
+SLBS_10year <- BigDays.sfdfT %>%
+  select(maxBS_shallow, 
+         CO2_10year,
+         CH4_10year, 
+         O3_10year,
+         AGGI_10year)
+SLBS_10year <- st_drop_geometry(SLBS_10year)
+cor(SLBS_10year)
+```
+
+Correlation Matrix -- 5 year averages: 
+```{r}
+CAPE_5year <- BigDays.sfdfT %>%
+  select(maxCAPE, 
+         CO2_5year, 
+         CH4_5year, 
+         O3_5year, 
+         AGGI_5year)
+CAPE_5year <- st_drop_geometry(CAPE_5year)
+cor(CAPE_5year)
+```
+
+```{r}
+DLBS_5year <- BigDays.sfdfT %>%
+  select(maxBS_deep, 
+         CO2_5year, 
+         CH4_5year, 
+         O3_5year, 
+         AGGI_5year)
+DLBS_5year <- st_drop_geometry(DLBS_5year)
+cor(DLBS_5year)
+```
+
+```{r}
+SLBS_5year <- BigDays.sfdfT %>%
+  select(maxBS_shallow, 
+         CO2_5year, 
+         CH4_5year, 
+         O3_5year, 
+         AGGI_5year)
+SLBS_5year <- st_drop_geometry(SLBS_5year)
+cor(SLBS_5year)
+```
+
+Correlation Matrix -- 1 year averages: 
+```{r}
+CAPE_1year <- BigDays.sfdfT %>%
+  select(maxCAPE, 
+         CO2_1year,
+         CH4_1year, 
+         O3_1year,
+         AGGI_1year)
+CAPE_1year <- st_drop_geometry(CAPE_1year)
+cor(CAPE_1year)
+```
+
+```{r}
+DLBS_1year <- BigDays.sfdfT %>%
+  select(maxBS_deep, 
+         CO2_1year, 
+         CH4_1year, 
+         O3_1year, 
+         AGGI_1year)
+DLBS_1year <- st_drop_geometry(DLBS_1year)
+cor(DLBS_1year)
+```
+
+```{r}
+SLBS_1year <- BigDays.sfdfT %>%
+  select(maxBS_shallow, 
+         CO2_1year, 
+         CH4_1year, 
+         O3_1year, 
+         AGGI_1year)
+SLBS_1year <- st_drop_geometry(SLBS_1year)
+cor(SLBS_1year)
+```
