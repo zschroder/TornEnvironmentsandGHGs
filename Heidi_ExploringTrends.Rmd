@@ -12,5 +12,36 @@ output: html_document
 
 **Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
 
+```{r}
+install.packages("dplyr")
+install.packages("ggplot2")
+```
+
+```{r}
+library("dplyr")
+library("ggplot2")
+```
+
+```{r}
+AnnGHG <- read.csv("AnnualAverages_GHG.csv")
+dim(AnnGHG)
+
+# grouping CO2_ppm and creating chart
+AnnGHG%>%
+  group_by(year)%>%
+  select("CO2_ppm")
+  
+ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
+  geom_bar(stat="identity", fill="orange", width=0.9)+
+  geom_smooth(color="black",linewidth=1.5)
+
+AnnGHG%>%
+  group_by(year)%>%
+  select("CH4_ppb")
+  
+ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
+    geom_bar(stat="identity", fill="magenta", width=0.9)+
+    geom_smooth(color="black", linewidth=1.5)
+```
 
  
