@@ -27,21 +27,44 @@ AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 dim(AnnGHG)
 
 # grouping CO2_ppm and creating chart
+
+str(AnnGHG)
+
 AnnGHG%>%
   group_by(year)%>%
   select("CO2_ppm")
   
 ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   geom_bar(stat="identity", fill="orange", width=0.9)+
-  geom_smooth(color="black",linewidth=1.5)
+  geom_smooth(color="black",linewidth=1.5)+
+  theme_bw()+
+  xlab("Years Recorded")+
+  ylab("CO2 Concenration (ppm)")+
+  scale_x_continuous(limits=c(1960,2029), breaks=c(1960, 1970, 1980, 1990, 2000, 2010, 2020, 2030))+
+  scale_y_continuous(limits=c(200, 500), breaks=c(200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500))
 
-AnnGHG%>%
-  group_by(year)%>%
-  select("CH4_ppb")
   
 ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
-    geom_bar(stat="identity", fill="magenta", width=0.9)+
+    geom_bar(stat="identity", fill="pink", width=0.9)+
     geom_smooth(color="black", linewidth=1.5)
+
+ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
+  geom_bar(stat="identity", fill="green", width=0.9)+
+  geom_smooth(color="black", linewidth=1.5)
+
+ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
+  geom_bar(stat="identity", fill="purple", width=0.9)+
+  geom_smooth(color="black", linewidth=1.5)
+
+ggplot(AnnGHG, aes(x=year, y=O3_DU))+
+  geom_bar(stat="identity", fill="red", width=0.9)+
+  geom_smooth(color="black", linewidth=1.5)
+
+ggplot(AnnGHG, aes(x=year, y=AGGI))+
+  geom_bar(stat="identity", fill="blue", width=0.9)+
+  geom_smooth(color="black", linewidth=1.5)
+
+
 ```
 
  
