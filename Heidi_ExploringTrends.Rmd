@@ -134,12 +134,12 @@ AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 #  select("CO2_ppm")
 
 #1990s 
-CO2_90avg = mean(AnnGHG[seq(32,41),2]) 
-CH4_90avg = mean(AnnGHG[seq(32,41),3])
-N2O_90avg = mean(AnnGHG[seq(32,41),4]) 
-SF6_90avg = mean(AnnGHG[seq(32,41),5]) 
-O3_90avg = mean(AnnGHG[seq(32,41),6]) 
-AGGI_90avg = mean(AnnGHG[seq(32,41),7]) 
+CO2_90avg = mean(AnnGHG[seq(31,42),2]) 
+CH4_90avg = mean(AnnGHG[seq(31,42),3])
+N2O_90avg = mean(AnnGHG[seq(31,42),4]) 
+SF6_90avg = mean(AnnGHG[seq(31,42),5]) 
+O3_90avg = mean(AnnGHG[seq(31,42),6]) 
+AGGI_90avg = mean(AnnGHG[seq(31,42),7]) 
 cat("1990s Averages \n CO2 Average:", CO2_90avg, "\n")
 cat(" CH4 Average: ", CH4_90avg, "\n")
 cat(" N2O Average:", N2O_90avg, "\n")
@@ -148,12 +148,12 @@ cat(" O3 Average:", O3_90avg, "\n")
 cat(" AGGI Average:", AGGI_90avg, "\n")
 
 #2000s 
-CO2_00avg = mean(AnnGHG[seq(42,51),2]) 
-CH4_00avg = mean(AnnGHG[seq(42,51),3])
-N2O_00avg = mean(AnnGHG[seq(42,51),4]) 
-SF6_00avg = mean(AnnGHG[seq(42,51),5]) 
-O3_00avg = mean(AnnGHG[seq(42,51),6]) 
-AGGI_00avg = mean(AnnGHG[seq(42,51),7]) 
+CO2_00avg = mean(AnnGHG[seq(41,52),2]) 
+CH4_00avg = mean(AnnGHG[seq(41,52),3])
+N2O_00avg = mean(AnnGHG[seq(41,52),4]) 
+SF6_00avg = mean(AnnGHG[seq(41,52),5]) 
+O3_00avg = mean(AnnGHG[seq(41,52),6]) 
+AGGI_00avg = mean(AnnGHG[seq(41,52),7]) 
 cat("2000s Averages \n CO2 Average:", CO2_00avg, "\n")
 cat(" CH4 Average: ", CH4_00avg, "\n")
 cat(" N2O Average:", N2O_00avg, "\n")
@@ -162,12 +162,12 @@ cat(" O3 Average:", O3_00avg, "\n")
 cat(" AGGI Average:", AGGI_00avg, "\n")
 
 #2010s
-CO2_10avg = mean(AnnGHG[seq(52,61),2]) 
-CH4_10avg = mean(AnnGHG[seq(52,61),3])
-N2O_10avg = mean(AnnGHG[seq(52,61),4]) 
-SF6_10avg = mean(AnnGHG[seq(52,61),5]) 
-O3_10avg = mean(AnnGHG[seq(52,61),6]) 
-AGGI_10avg = mean(AnnGHG[seq(52,61),7]) 
+CO2_10avg = mean(AnnGHG[seq(51,62),2]) 
+CH4_10avg = mean(AnnGHG[seq(51,62),3])
+N2O_10avg = mean(AnnGHG[seq(51,62),4]) 
+SF6_10avg = mean(AnnGHG[seq(51,62),5]) 
+O3_10avg = mean(AnnGHG[seq(51,62),6]) 
+AGGI_10avg = mean(AnnGHG[seq(51,62),7]) 
 cat("2010s Averages \n CO2 Average:", CO2_10avg, "\n")
 cat(" CH4 Average: ", CH4_10avg, "\n")
 cat(" N2O Average:", N2O_10avg, "\n")
@@ -176,12 +176,12 @@ cat(" O3 Average:", O3_10avg, "\n")
 cat(" AGGI Average:", AGGI_10avg, "\n")
 
 #2020s 
-CO2_20avg = mean(AnnGHG[seq(62,71),2]) 
-CH4_20avg = mean(AnnGHG[seq(62,71),3])
-N2O_20avg = mean(AnnGHG[seq(62,71),4]) 
-SF6_20avg = mean(AnnGHG[seq(62,71),5]) 
-O3_20avg = mean(AnnGHG[seq(62,71),6]) 
-AGGI_20avg = mean(AnnGHG[seq(62,71),7]) 
+CO2_20avg = mean(AnnGHG[seq(61,72),2]) 
+CH4_20avg = mean(AnnGHG[seq(61,72),3])
+N2O_20avg = mean(AnnGHG[seq(61,72),4]) 
+SF6_20avg = mean(AnnGHG[seq(61,72),5]) 
+O3_20avg = mean(AnnGHG[seq(61,72),6]) 
+AGGI_20avg = mean(AnnGHG[seq(61,72),7]) 
 cat("2020s Averages \n CO2 Average:", CO2_20avg, "\n")
 cat(" CH4 Average: ", CH4_20avg, "\n")
 cat(" N2O Average:", N2O_20avg, "\n")
@@ -189,18 +189,65 @@ cat(" SF6 Average:", SF6_20avg, "\n")
 cat(" O3 Average:", O3_20avg, "\n")
 cat(" AGGI Average:", AGGI_20avg, "\n")
 
-CO2 = data.frame(CO2_90avg, CO2_00avg, CO2_10avg, CO2_20avg)
-year= data.frame(1990, 2000, 2010, 2020)
-
-#Figure for 10 year averages
-ggplot(data = CO2)+
-  geom_bar(mapping=aes(x=year, y=CO2),stat="identity",position = "dodge",  fill="red", width=0.9)+
-  #stat_smooth(method = "lm", formula= y~x, geom = "smooth", color="black", linewidth=1.5)+
+#Figure for 90s CO2 averages
+ggplot(AnnGHG, aes(x = year, y = CO2_90avg))+
+  geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
   theme_bw()+
   xlab("Years Recorded")+
-  ylab("03 (DU)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2025, 4)))+
+  ylab("CO2 (ppm)")+
+  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+  scale_y_continuous(expand=c(0,0), limits=c(0, 500), breaks=c(seq(0,500, 100)))
+
+#Figure for 90s CH4 averages
+ggplot(AnnGHG, aes(x = year, y = CH4_90avg))+
+  geom_bar(stat="identity",position = "stack",  fill="pink", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  xlab("Years Recorded")+
+  ylab("CH4 (ppb)")+
+  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
+
+#Figure for 90s N2O averages
+ggplot(AnnGHG, aes(x = year, y = N2O_90avg))+
+  geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  xlab("Years Recorded")+
+  ylab("N2O (ppb)")+
+  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
+
+#Figure for 90s SF6  averages
+ggplot(AnnGHG, aes(x = year, y = SF6_90avg))+
+  geom_bar(stat="identity",position = "stack",  fill="purple", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  xlab("Years Recorded")+
+  ylab("SF6 (ppt)")+
+  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
+
+#Figure for 90s O3 averages
+ggplot(AnnGHG, aes(x = year, y = O3_90avg))+
+  geom_bar(stat="identity",position = "stack",  fill="maroon", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  xlab("Years Recorded")+
+  ylab("O3 (DU)")+
+  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
+
+#Figure for 90s AGGI averages
+ggplot(AnnGHG, aes(x = year, y = AGGI_90avg))+
+  geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  xlab("Years Recorded")+
+  ylab("AGGI")+
+  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,2), breaks=c(seq(0,2,0.1)))
 ```
 
  
