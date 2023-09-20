@@ -3,6 +3,8 @@ title: "Zoe_GHGonTornEnv"
 author: "Zoe Schroder and Heidi Erfourth"
 date: "2023-07-25"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 Journal of Climate Dynamics (no APC charges Apply!)
@@ -29,6 +31,9 @@ suppressMessages(library(lutz))
 suppressMessages(library(xts))
 suppressMessages(library(chron))
 suppressMessages(library(sp))
+suppressMessages(library(USAboundaries))
+suppressMessages(library(tmap))
+suppressMessages(library(raster))
 ```
 
 Load the outbreak data for this project: 
@@ -36,9 +41,376 @@ Load the outbreak data for this project:
 load("TornadoOutbreaks.RData")
 ```
 
+Extract the information for the second largest big day (December 15, 2021):
+
+```{r}
+Dec15 <- BigDays.sfdfT %>%
+  dplyr::filter(ID == "202112156918")
+
+Dec15Centroid <- BigDayCentroids.df %>%
+  dplyr::filter(ID == "202112156918")
+
+Dec15Torns <- BigDayTornadoes %>%
+  dplyr::filter(ID == "202112156918")
+```
+
+Example Big Day: Plot the big day of December 15, 2021
+
+Step 1: Get the state data for the lower 48 using the `us_states` function from the **USAboundaries** package. This will allow the state borders to be added to a map using the *tm_shape* function. 
+```{r}
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")]
+stateBorders <- us_states(states = sts)
+```
+
+```{r}
+tm_shape(stateBorders) +
+  tm_borders(col = "gray70", 
+             alpha = 1) +
+  tm_compass(size = 3, 
+             text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray70") +       
+  tm_scale_bar(width = .3, 
+               text.size = 0.8, 
+               lwd = 1.75, 
+               color.dark = "gray70") +
+  tm_layout(legend.bg.color = "white", 
+            legend.text.size = .75, 
+            attr.position = c("left", "bottom"), 
+            inner.margins = c(.2, .2, .1, .2)) + # (S, W, N, E)
+#Plot the hull of the outbreak
+tm_shape(Dec15,
+         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
+    tm_polygons(alpha = 0,
+                border.col = "black",
+                lwd = 1.5) +
+#Plot the individual tornadoes
+tm_shape(Dec15Torns, 
+         is.master = TRUE, 
+         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
+    tm_bubbles(size = 0.5, 
+              col = "mag", 
+              breaks = seq(0, 5, by=1),
+              labels = c("F1", "F2", "F3", "F4", "F5"), 
+              title.col = "Magnitude") +
+      tm_layout("December 15, 2021", 
+                legend.title.size = 1.1,
+                legend.position = c("right", "bottom"), 
+                legend.stack = "horizontal",
+                legend.frame = FALSE, 
+                legend.text.size = 1, legend.width = -0.2) +
+# Plot the central location of the outbreaks
+tm_shape(Dec15Centroid, 
+         is.master = TRUE, 
+         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
+  tm_symbols(size = 1.25, 
+             col = "black", 
+             shape = 24) 
+```
+
+Example NARR: December 15, 2021
+
 ```{r}
 
 ```
+
+Plot the CAPE and DLBS for the May 20, 2019 Big Day: 
+
+*First, read in the raster. *
+```{r}
+#December 15, 2021
+i = 839
+  rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))#<-- this is for varying NARR times
+  CAPE <- raster(rb, layer = 375)
+  HLCY <- raster(rb, layer = 323)
+  CIN <- raster(rb, layer = 376)
+  UGRD500 <- raster(rb, layer = 117) 
+  VGRD500 <- raster(rb, layer = 118) 
+  UGRD850 <- raster(rb, layer = 206) 
+  VGRD850 <- raster(rb, layer = 207)
+  UGRDsfc <- raster(rb, layer = 293) 
+  VGRDsfc <- raster(rb, layer = 294)     
+  DLBS <- sqrt(((UGRD500 - UGRDsfc)**2) + ((VGRD500 - VGRDsfc)**2))
+  SLBS <- sqrt(((UGRD850 - UGRDsfc)**2) + ((VGRD850 - VGRDsfc)**2))
+```
+**Convective Available Potential energy **
+```{r}
+#CAPE = projectRaster(CAPE, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+Dec15 <- st_transform(Dec15, 
+  crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+```
+
+```{r}
+CAPE_Dec15 <- crop(CAPE, extent(Dec15))
+CAPE_extent<- mask(CAPE_Dec15, Dec15)
+#plot(CAPE_extent)
+
+maxCAPE <- which.max(CAPE_extent) #Returns a pixel number
+
+#Test that this max value equals the one in BigDays.sfdfT
+test <- getValues(CAPE_extent) 
+test<-as.matrix(test, ncol=1)
+```
+
+```{r}
+CAPEmaxpos <- xyFromCell(CAPE_extent, maxCAPE)
+
+xy <- data.frame(CAPEmaxpos)
+CAPE_latlon <- data.frame(lon=xy$x, lat=xy$y)
+print(CAPE_latlon)
+
+CAPE_latlon <- SpatialPoints(CAPE_latlon)
+proj4string(CAPE_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+```
+
+```{r}
+p1 <- tm_shape(CAPE_extent) +
+  tm_raster(title = "",  
+            n = 6, 
+            palette = "BuPu") +
+  tm_format(title = expression(paste("Convective Available Potential Energy [J ", kg^-1,"]")), 
+            "World", 
+            legend.position = c("right", "bottom"),
+            attr.position = c("right", "top"),
+            legend.frame = FALSE,
+            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            legend.text.size = 1, 
+            legend.width = -0.28, 
+            legend.title.size=1, 
+            legend.bg.color = "white", 
+            title.size = 1.4) +
+#tm_shape(counties) +
+  #tm_borders(col = "grey") +
+  tm_scale_bar(width = 0.3, 
+               text.size = 0.8, 
+               position = c("left", "bottom"), 
+               color.dark = "gray70") +
+  tm_compass(size = 3, 
+             text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray70") + 
+tm_shape(stateBorders) +
+  tm_borders() +
+tm_shape(Dec15, 
+         is.master = TRUE, 
+         projection = merc) +
+  tm_borders(col = "black", 
+             lwd = 3)  +
+#tm_shape(May6centroid) +
+#  tm_symbols(size = 1.25, col = "black", shape = 24) +
+tm_shape(CAPE_latlon) + 
+  tm_symbols(size = 1.4, 
+             col = "black", 
+             shape = 22)
+p1
+```
+
+**Convective Inhibition **
+```{r}
+CIN_Dec15 <- crop(CIN, extent(Dec15))
+CIN_extent<- mask(CIN_Dec15, Dec15)
+#plot(CIN_extent)
+
+minCIN <- which.min(CIN_extent) #Returns a pixel number
+
+#Test that this max value equals the one in BigDays.sfdfT
+test <- getValues(CIN_extent) 
+test<-as.matrix(test, ncol=1)
+```
+
+```{r}
+CINmaxpos <- xyFromCell(CIN_extent, minCIN)
+
+xy <- data.frame(CINmaxpos)
+CIN_latlon <- data.frame(lon=xy$x, lat=xy$y)
+print(CIN_latlon)
+
+CIN_latlon <- SpatialPoints(CIN_latlon)
+proj4string(CIN_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+```
+
+```{r}
+p2 <- tm_shape(CIN_extent) +
+  tm_raster(title = "",  
+            n = 6, 
+            palette = "Greens") +
+  tm_format(title = expression(paste("Convective Inhibition [J ",kg^-1,"]")), 
+            "World", 
+            legend.position = c("right", "bottom"),
+            attr.position = c("right", "top"),
+            legend.frame = FALSE,
+            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            legend.text.size = 1, 
+            legend.width = -0.28, 
+            legend.title.size=1, 
+            legend.bg.color = "white", 
+            title.size = 1.4) +
+#tm_shape(counties) +
+  #tm_borders(col = "grey") +
+  tm_scale_bar(width = 0.3, 
+               text.size = 0.8, 
+               position = c("left", "bottom"), 
+               color.dark = "gray70") +
+  tm_compass(size = 3, 
+             text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray70") + 
+tm_shape(stateBorders) +
+  tm_borders() +
+tm_shape(Dec15, 
+         is.master = TRUE, 
+         projection = merc) +
+  tm_borders(col = "black", 
+             lwd = 3)  +
+#tm_shape(May6centroid) +
+#  tm_symbols(size = 1.25, col = "black", shape = 24) +
+tm_shape(CIN_latlon) + 
+  tm_symbols(size = 1.4, 
+             col = "black", 
+             shape = 22)
+p2
+```
+
+**Shallow - Layer Bulk Shear**
+```{r}
+SLBS_Dec15 <- crop(SLBS, extent(Dec15))
+SLBS_extent<- mask(SLBS_Dec15, Dec15)
+#plot(SLBS_extent)
+
+maxSLBS <- which.max(SLBS_extent)
+```
+
+```{r}
+SLBSmaxpos <- xyFromCell(SLBS_extent, maxSLBS)
+
+xy <- data.frame(SLBSmaxpos)
+SLBS_latlon <- data.frame(lon=xy$x, lat=xy$y)
+print(SLBS_latlon)
+
+SLBS_latlon <- SpatialPoints(SLBS_latlon)
+proj4string(SLBS_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+```
+
+```{r}
+p3 <- tm_shape(SLBS_extent) +
+  tm_raster(title = "", 
+            n = 5, 
+            palette = "Blues") +
+  tm_format(title = expression(paste("Shallow-Layer Bulk Shear [m ",s^-1,"]")), 
+            "World", 
+            legend.position = c("right", "bottom"),
+  #tm_format(title = expression(paste("Deep-Layer Bulk Shear [m ", s^-1, "]")), "World", legend.position = c("right", "bottom"),
+            attr.position = c("right", "top"),
+            legend.frame = FALSE,
+            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            legend.text.size = 1, 
+            legend.width = -0.2, 
+            legend.title.size=1, 
+            legend.bg.color = "white", 
+            title.size = 1.4) +
+#tm_shape(counties) +
+#  tm_borders(col = "grey") +
+  tm_scale_bar(width = 0.3, 
+               text.size = 0.8, 
+               position = c("left", "bottom"), 
+               color.dark = "gray70") +
+  tm_compass(size = 3, 
+             text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray70") + 
+tm_shape(stateBorders) +
+  tm_borders() +
+tm_shape(Dec15, 
+         is.master = TRUE, 
+         projection = merc) +
+  tm_borders(col = "black", 
+             lwd = 3)  +
+tm_shape(SLBS_latlon) + 
+  tm_symbols(size = 1.4, 
+             col = "black", 
+             shape = 22)
+p3
+```
+
+**Deep - Layer Bulk Shear**
+```{r}
+DLBS_Dec15 <- crop(DLBS, extent(Dec15))
+DLBS_extent<- mask(DLBS_Dec15, Dec15)
+#plot(DLBS_extent)
+
+maxDLBS <- which.max(DLBS_extent)
+```
+
+```{r}
+DLBSmaxpos <- xyFromCell(DLBS_extent, maxDLBS)
+
+xy <- data.frame(DLBSmaxpos)
+DLBS_latlon <- data.frame(lon=xy$x, 
+                          lat=xy$y)
+print(DLBS_latlon)
+
+DLBS_latlon <- SpatialPoints(DLBS_latlon)
+proj4string(DLBS_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
+```
+
+```{r}
+p4 <- tm_shape(DLBS_extent) +
+  tm_raster(title = "", 
+            n = 5, 
+            palette = "Reds") +
+  tm_format(title = expression(paste("Deep-Layer Bulk Shear [m ",s^-1,"]")), 
+            "World", 
+            legend.position = c("right", "bottom"),
+  #tm_format(title = expression(paste("Deep-Layer Bulk Shear [m ", s^-1, "]")), "World", legend.position = c("right", "bottom"),
+            attr.position = c("right", "top"),
+            legend.frame = FALSE,
+            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            legend.text.size = 1, 
+            legend.width = -0.2, 
+            legend.title.size=1, 
+            legend.bg.color = "white", 
+            title.size = 1.4) +
+#tm_shape(counties) +
+#  tm_borders(col = "grey") +
+  tm_scale_bar(width = 0.3, 
+               text.size = 0.8, 
+               position = c("left", "bottom"), 
+               color.dark = "gray70") +
+  tm_compass(size = 3, 
+             text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray70") + 
+tm_shape(stateBorders) +
+  tm_borders() +
+tm_shape(Dec15, 
+         is.master = TRUE, 
+         projection = merc) +
+  tm_borders(col = "black", 
+             lwd = 3)  +
+tm_shape(DLBS_latlon) + 
+  tm_symbols(size = 1.4, 
+             col = "black", 
+             shape = 22)
+p4
+```
+
+**Combine into one figure: **
+```{r}
+tmap_arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
+```
+
+
+Plot the GHG Emissions from 1994 to 2022:
+
+
+
+
+
+
+
+
+
+
 
 
 
