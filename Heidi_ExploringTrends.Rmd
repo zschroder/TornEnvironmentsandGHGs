@@ -190,64 +190,58 @@ cat(" O3 Average:", O3_20avg, "\n")
 cat(" AGGI Average:", AGGI_20avg, "\n")
 
 #Figure for 90s CO2 averages
-ggplot(AnnGHG, aes(x = year, y = CO2_90avg))+
+ggplot(AnnGHG, aes(x = year, y = CO2_90avg, CO2_00avg, CO2_10avg, CO2_20avg))+
   geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
   theme_bw()+
   xlab("Years Recorded")+
   ylab("CO2 (ppm)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+  scale_x_continuous(expand=c(0,0), limits=c(1980,2030), breaks=c(seq(1980, 2030, 10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0, 500), breaks=c(seq(0,500, 100)))
 
-#Figure for 90s CH4 averages
-ggplot(AnnGHG, aes(x = year, y = CH4_90avg))+
-  geom_bar(stat="identity",position = "stack",  fill="pink", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Years Recorded")+
-  ylab("CH4 (ppb)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
-
-#Figure for 90s N2O averages
-ggplot(AnnGHG, aes(x = year, y = N2O_90avg))+
-  geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Years Recorded")+
-  ylab("N2O (ppb)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
-
-#Figure for 90s SF6  averages
-ggplot(AnnGHG, aes(x = year, y = SF6_90avg))+
-  geom_bar(stat="identity",position = "stack",  fill="purple", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Years Recorded")+
-  ylab("SF6 (ppt)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
-
-#Figure for 90s O3 averages
-ggplot(AnnGHG, aes(x = year, y = O3_90avg))+
-  geom_bar(stat="identity",position = "stack",  fill="maroon", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Years Recorded")+
-  ylab("O3 (DU)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
-
-#Figure for 90s AGGI averages
-ggplot(AnnGHG, aes(x = year, y = AGGI_90avg))+
-  geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Years Recorded")+
-  ylab("AGGI")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,2), breaks=c(seq(0,2,0.1)))
+# #Figure for 90s CH4 averages
+# ggplot(AnnGHG, aes(x = year, y = CH4_90avg))+
+#   geom_bar(stat="identity",position = "stack",  fill="pink", width=0.9)+
+#   theme_bw()+
+#   xlab("Years Recorded")+
+#   ylab("CH4 (ppb)")+
+#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+#   scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
+# 
+# #Figure for 90s N2O averages
+# ggplot(AnnGHG, aes(x = year, y = N2O_90avg))+
+#   geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
+#   theme_bw()+
+#   xlab("Years Recorded")+
+#   ylab("N2O (ppb)")+
+#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+#   scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
+# 
+# #Figure for 90s SF6  averages
+# ggplot(AnnGHG, aes(x = year, y = SF6_90avg))+
+#   geom_bar(stat="identity",position = "stack",  fill="purple", width=0.9)+
+#   theme_bw()+
+#   xlab("Years Recorded")+
+#   ylab("SF6 (ppt)")+
+#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+#   scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
+# 
+# #Figure for 90s O3 averages
+# ggplot(AnnGHG, aes(x = year, y = O3_90avg))+
+#   geom_bar(stat="identity",position = "stack",  fill="maroon", width=0.9)+
+#   theme_bw()+
+#   xlab("Years Recorded")+
+#   ylab("O3 (DU)")+
+#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+#   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
+# 
+# #Figure for 90s AGGI averages
+# ggplot(AnnGHG, aes(x = year, y = AGGI_90avg))+
+#   geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
+#   theme_bw()+
+#   xlab("Years Recorded")+
+#   ylab("AGGI")+
+#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
+#   scale_y_continuous(expand=c(0,0), limits=c(0,2), breaks=c(seq(0,2,0.1)))
 ```
 
  
