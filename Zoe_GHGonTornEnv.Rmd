@@ -34,6 +34,8 @@ suppressMessages(library(sp))
 suppressMessages(library(USAboundaries))
 suppressMessages(library(tmap))
 suppressMessages(library(raster))
+suppressMessages(library(ggplot2))
+suppressMessages(library(gridExtra))
 ```
 
 Load the outbreak data for this project: 
@@ -54,7 +56,7 @@ Dec15Torns <- BigDayTornadoes %>%
   dplyr::filter(ID == "202112156918")
 ```
 
-Example Big Day: Plot the big day of December 15, 2021
+## Example Big Day: Plot the big day of December 15, 2021
 
 Step 1: Get the state data for the lower 48 using the `us_states` function from the **USAboundaries** package. This will allow the state borders to be added to a map using the *tm_shape* function. 
 ```{r}
@@ -62,6 +64,7 @@ sts <- state.name[!state.name %in% c("Alaska", "Hawaii")]
 stateBorders <- us_states(states = sts)
 ```
 
+Step 2: Plot the December 15, 2021 big day.
 ```{r}
 tm_shape(stateBorders) +
   tm_borders(col = "gray70", 
@@ -108,16 +111,10 @@ tm_shape(Dec15Centroid,
              shape = 24) 
 ```
 
-Example NARR: December 15, 2021
+## Example NARR: December 15, 2021
 
-```{r}
-
-```
-
-Plot the CAPE and DLBS for the May 20, 2019 Big Day: 
-
-*First, read in the raster. *
-```{r}
+Step 1: Read in the raster.
+```{r, eval=FALSE}
 #December 15, 2021
 i = 839
   rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))#<-- this is for varying NARR times
@@ -133,14 +130,17 @@ i = 839
   DLBS <- sqrt(((UGRD500 - UGRDsfc)**2) + ((VGRD500 - VGRDsfc)**2))
   SLBS <- sqrt(((UGRD850 - UGRDsfc)**2) + ((VGRD850 - VGRDsfc)**2))
 ```
+
+Step 2: Plot the figures for CAPE, CIN, DLBS, & SLBS
+
 **Convective Available Potential energy **
-```{r}
+```{r, eval=FALSE}
 #CAPE = projectRaster(CAPE, crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 Dec15 <- st_transform(Dec15, 
   crs = "+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 ```
 
-```{r}
+```{r, eval=FALSE}
 CAPE_Dec15 <- crop(CAPE, extent(Dec15))
 CAPE_extent<- mask(CAPE_Dec15, Dec15)
 #plot(CAPE_extent)
@@ -152,7 +152,7 @@ test <- getValues(CAPE_extent)
 test<-as.matrix(test, ncol=1)
 ```
 
-```{r}
+```{r, eval=FALSE}
 CAPEmaxpos <- xyFromCell(CAPE_extent, maxCAPE)
 
 xy <- data.frame(CAPEmaxpos)
@@ -163,7 +163,7 @@ CAPE_latlon <- SpatialPoints(CAPE_latlon)
 proj4string(CAPE_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 ```
 
-```{r}
+```{r, eval=FALSE}
 p1 <- tm_shape(CAPE_extent) +
   tm_raster(title = "",  
             n = 6, 
@@ -205,8 +205,8 @@ tm_shape(CAPE_latlon) +
 p1
 ```
 
-**Convective Inhibition **
-```{r}
+**Convective Inhibition**
+```{r, eval=FALSE}
 CIN_Dec15 <- crop(CIN, extent(Dec15))
 CIN_extent<- mask(CIN_Dec15, Dec15)
 #plot(CIN_extent)
@@ -218,7 +218,7 @@ test <- getValues(CIN_extent)
 test<-as.matrix(test, ncol=1)
 ```
 
-```{r}
+```{r, eval=FALSE}
 CINmaxpos <- xyFromCell(CIN_extent, minCIN)
 
 xy <- data.frame(CINmaxpos)
@@ -229,7 +229,7 @@ CIN_latlon <- SpatialPoints(CIN_latlon)
 proj4string(CIN_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 ```
 
-```{r}
+```{r, eval=FALSE}
 p2 <- tm_shape(CIN_extent) +
   tm_raster(title = "",  
             n = 6, 
@@ -271,8 +271,8 @@ tm_shape(CIN_latlon) +
 p2
 ```
 
-**Shallow - Layer Bulk Shear**
-```{r}
+**Shallow-Layer Bulk Shear**
+```{r, eval=FALSE}
 SLBS_Dec15 <- crop(SLBS, extent(Dec15))
 SLBS_extent<- mask(SLBS_Dec15, Dec15)
 #plot(SLBS_extent)
@@ -280,7 +280,7 @@ SLBS_extent<- mask(SLBS_Dec15, Dec15)
 maxSLBS <- which.max(SLBS_extent)
 ```
 
-```{r}
+```{r, eval=FALSE}
 SLBSmaxpos <- xyFromCell(SLBS_extent, maxSLBS)
 
 xy <- data.frame(SLBSmaxpos)
@@ -291,7 +291,7 @@ SLBS_latlon <- SpatialPoints(SLBS_latlon)
 proj4string(SLBS_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 ```
 
-```{r}
+```{r, eval=FALSE}
 p3 <- tm_shape(SLBS_extent) +
   tm_raster(title = "", 
             n = 5, 
@@ -332,8 +332,8 @@ tm_shape(SLBS_latlon) +
 p3
 ```
 
-**Deep - Layer Bulk Shear**
-```{r}
+**Deep-Layer Bulk Shear**
+```{r, eval=FALSE}
 DLBS_Dec15 <- crop(DLBS, extent(Dec15))
 DLBS_extent<- mask(DLBS_Dec15, Dec15)
 #plot(DLBS_extent)
@@ -341,7 +341,7 @@ DLBS_extent<- mask(DLBS_Dec15, Dec15)
 maxDLBS <- which.max(DLBS_extent)
 ```
 
-```{r}
+```{r, eval=FALSE}
 DLBSmaxpos <- xyFromCell(DLBS_extent, maxDLBS)
 
 xy <- data.frame(DLBSmaxpos)
@@ -353,7 +353,7 @@ DLBS_latlon <- SpatialPoints(DLBS_latlon)
 proj4string(DLBS_latlon) = CRS("+proj=lcc +lat_1=50 +lat_2=50 +lat_0=50 +lon_0=-107 +x_0=0 +y_0=0 +a=6371200 +b=6371200 +units=m +no_defs")
 ```
 
-```{r}
+```{r, eval=FALSE}
 p4 <- tm_shape(DLBS_extent) +
   tm_raster(title = "", 
             n = 5, 
@@ -394,23 +394,229 @@ tm_shape(DLBS_latlon) +
 p4
 ```
 
-**Combine into one figure: **
-```{r}
+Step 3: Combine into one figure.
+```{r, eval=FALSE}
 tmap_arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 ```
 
+## Plot the GHG Emissions from 1994 to 2022:
 
-Plot the GHG Emissions from 1994 to 2022:
+```{r}
+GHG_Emissions <- read.csv("AnnualAverages_GHG.csv")
+```
 
+```{r}
+CO2_plot <- ggplot(GHG_Emissions) +
+  geom_line(aes(x = year, y = CO2_ppm), 
+            color = "red",
+            linewidth = 1) +
+  theme_bw() +
+  xlab("Year") +
+  ylab("Carbon Dioxide Emissions (ppm)") +
+  theme(axis.text = element_text(size = 14), 
+        axis.title = element_text(size = 16), 
+        legend.text = element_text(size = 16)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1959, 2023), 
+                     breaks = seq(1960, 2023, 10)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(300, 430), 
+                     breaks = seq(300, 425, 25)) 
+```
 
+```{r}
+CH4_plot <- ggplot(GHG_Emissions) +
+  geom_line(aes(x = year, y = CH4_ppb), 
+            color = "green4",
+            linewidth = 1) +
+  theme_bw() +
+  xlab("Year") +
+  ylab("Methane Emissions (ppb)") +
+  theme(axis.text = element_text(size = 14), 
+        axis.title = element_text(size = 16), 
+        legend.text = element_text(size = 16)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1960, 2023), 
+                     breaks = seq(1960, 2023, 10)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(1600, 2000), 
+                     breaks = seq(1600, 2000, 50)) 
+```
 
+```{r}
+O3_plot <- ggplot(GHG_Emissions) +
+  geom_line(aes(x = year, y = O3_DU), 
+            color = "purple",
+            linewidth = 1) +
+  theme_bw() +
+  xlab("Year") +
+  ylab("Ozone Emissions (DU)") +
+  theme(axis.text = element_text(size = 14), 
+        axis.title = element_text(size = 16), 
+        legend.text = element_text(size = 16)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1960, 2023), 
+                     breaks = seq(1960, 2023, 10)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(80, 240), 
+                     breaks = seq(80, 240, 20)) 
+```
 
+```{r}
+AGGI_plot <- ggplot(GHG_Emissions) +
+  geom_line(aes(x = year, y = AGGI), 
+            color = "blue",
+            linewidth = 1) +
+  theme_bw() +
+  xlab("Year") +
+  ylab("Annual Greenhouse Gas Index") +
+  theme(axis.text = element_text(size = 14), 
+        axis.title = element_text(size = 16), 
+        legend.text = element_text(size = 16)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1960, 2023), 
+                     breaks = seq(1960, 2023, 10)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0.6, 1.6), 
+                     breaks = seq(0.7, 1.6, 0.1)) 
+```
 
+```{r}
+grid.arrange(CO2_plot, CH4_plot, O3_plot, AGGI_plot, nrow = 2)
+```
 
+```{r}
+x <- BigDays.sfdfT %>%
+  group_by(Year) %>%
+  summarize(max_CAPE = max(maxCAPE),
+            min_CIN = min(minCIN),
+            max_DLBS = max(maxBS_deep),
+            max_SLBS = max(maxBS_shallow),
+            CO2 = max(CO2_10year),
+            CH4 = max(CH4_10year),
+            O3 = max(O3_10year),
+            AGGI = max(AGGI_10year))
+```
 
+```{r}
+ggplot(x) +
+  geom_bar(aes(x = Year, y = max_CAPE),
+           stat = "identity", 
+           color = "white",
+           fill = "blue",
+           linewidth = 1) +
+  geom_line(aes(x = Year, y = CO2*7000/500),
+            stat = "identity",
+            color = "red",
+            size = 2) +
+  theme_bw() +
+  xlab("Year") +
+  ylab(expression(paste("Convective Available Potential Energy [J ",kg^-1,"]"))) +
+  theme(axis.text = element_text(size = 12), 
+        axis.text.x = element_text(angle = 45, 
+                                   vjust = 1, 
+                                   hjust = 1),
+        axis.title = element_text(size = 14), 
+        legend.text = element_text(size = 14)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1993.5, 2022.5), 
+                     breaks = seq(1994, 2022, 2)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 7100), 
+                     breaks = seq(0, 7000, 1000),
+                     sec.axis = sec_axis(~.*500/7000, 
+                                         name = "Carbon Dioxide [ppm]"))
+```
 
+```{r}
+ggplot(x) +
+  geom_bar(aes(x = Year, y = max_CAPE),
+           stat = "identity", 
+           color = "white",
+           fill = "blue",
+           linewidth = 1) +
+  geom_line(aes(x = Year, y = CH4*6000/1900),
+            stat = "identity",
+            color = "red",
+            size = 2) +
+  theme_bw() +
+  xlab("Year") +
+  ylab(expression(paste("Convective Available Potential Energy [J ",kg^-1,"]"))) +
+  theme(axis.text = element_text(size = 12), 
+        axis.text.x = element_text(angle = 45, 
+                                   vjust = 1, 
+                                   hjust = 1),
+        axis.title = element_text(size = 14), 
+        legend.text = element_text(size = 14)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1993.5, 2022.5), 
+                     breaks = seq(1994, 2022, 2)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 7100), 
+                     breaks = seq(0, 7000, 1000),
+                     sec.axis = sec_axis(~.*1900/6000, 
+                                         name = "Methane [ppb]"))
+```
 
+```{r}
+ggplot(x) +
+  geom_bar(aes(x = Year, y = max_CAPE),
+           stat = "identity", 
+           color = "white",
+           fill = "blue",
+           linewidth = 1) +
+  geom_line(aes(x = Year, y = O3*6000/140),
+            stat = "identity",
+            color = "red",
+            size = 2) +
+  theme_bw() +
+  xlab("Year") +
+  ylab(expression(paste("Convective Available Potential Energy [J ",kg^-1,"]"))) +
+  theme(axis.text = element_text(size = 12), 
+        axis.text.x = element_text(angle = 45, 
+                                   vjust = 1, 
+                                   hjust = 1),
+        axis.title = element_text(size = 14), 
+        legend.text = element_text(size = 14)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1993.5, 2022.5), 
+                     breaks = seq(1994, 2022, 2)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 7100), 
+                     breaks = seq(0, 7000, 1000),
+                     sec.axis = sec_axis(~.*140/6000, 
+                                         name = "Ozone [DU]"))
+```
 
+```{r}
+ggplot(x) +
+  geom_bar(aes(x = Year, y = max_CAPE),
+           stat = "identity", 
+           color = "white",
+           fill = "blue",
+           linewidth = 1) +
+  geom_line(aes(x = Year, y = AGGI*6000/1.5),
+            stat = "identity",
+            color = "red",
+            size = 2) +
+  theme_bw() +
+  xlab("Year") +
+  ylab(expression(paste("Convective Available Potential Energy [J ",kg^-1,"]"))) +
+  theme(axis.text = element_text(size = 12), 
+        axis.text.x = element_text(angle = 45, 
+                                   vjust = 1, 
+                                   hjust = 1),
+        axis.title = element_text(size = 14), 
+        legend.text = element_text(size = 14)) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1993.5, 2022.5), 
+                     breaks = seq(1994, 2022, 2)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 7100), 
+                     breaks = seq(0, 7000, 1000),
+                     sec.axis = sec_axis(~.*1.5/6000, 
+                                         name = "Annual Greenhouse Gas Index"))
+```
 
 
 
