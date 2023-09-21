@@ -13,8 +13,9 @@ output: html_document
 **Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
 
 ```{r}
-install.packages("dplyr")
-install.packages("ggplot2")
+# Do not need to do these everytime. Once installed on your computer you are finished. 
+#install.packages("dplyr")
+#install.packages("ggplot2")
 ```
 
 ```{r}
@@ -26,15 +27,18 @@ creating general trend and regression charts
 ```{r}
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 dim(AnnGHG)
+str(AnnGHG)
+```
+
 
 # grouping CO2_ppm and creating chart
 
-str(AnnGHG)
-
-AnnGHG%>%
-  group_by(year)%>%
-  select("CO2_ppm")
-  
+This code does not do anything and is unnecessary: 
+#AnnGHG%>%
+ # group_by(year)%>%
+ # select("CO2_ppm")
+ 
+```{r}  
 ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black",linewidth=1.5)+
@@ -43,13 +47,14 @@ ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   ylab("CO2 Concenration (ppm)")+
   scale_x_continuous(expand=c(0,0), limits=c(1955,2025), breaks=c(seq(1960,2025,10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,500), breaks=c(seq(0,500,50)))
-
+```
 #grouping CH4_ppn and creating chart
 
-AnnGHG%>%
-  group_by(year)%>%
-  select("CH4_ppb")
-  
+Thiscode does not do anything and is unnecessary: 
+#AnnGHG%>%
+#  group_by(year)%>%
+#  select("CH4_ppb")
+```{r}  
 ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   geom_bar(stat="identity",position="stack",  fill="pink", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
@@ -58,13 +63,21 @@ ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   ylab("CH4 (ppb)")+
   scale_x_continuous(expand=c(0,0), limits=c(1980,2025), breaks=c(seq(1980, 2025, 10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
+```
 
 #grouping N2O_ppb and creating chart
 #Need to fix the zero in N2O needs to be and O
+
+*Here is the code to rename a column in R: *
+```{r}
+colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
+```
+
+This code does not do anything and is unnecessary:
 AnnGHG%>%
   group_by(year)%>%
   select("N20_ppb")
-
+```{r}
 ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
   geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
@@ -73,13 +86,15 @@ ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
   ylab("N2O (ppb)")+
   scale_x_continuous(expand=c(0,0), limits=c(2000,2025), breaks=c(seq(2000, 2025, 4)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
-  
+``` 
+
 #grouping SF6_ppt and creating chart
 
 AnnGHG%>%
   group_by(year)%>%
   select("SF6_ppt")
 
+```{r}
 ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   geom_bar(stat="identity",position = "stack", fill="purple", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
@@ -88,13 +103,15 @@ ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   ylab("SF6 (ppt)")+
   scale_x_continuous(expand=c(0,0), limits=c(1995,2025), breaks=c(seq(1995, 2025, 4)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
+```
 
 #grouping O3_DU and creating chart
 
 AnnGHG%>%
   group_by(year)%>%
   select("O3_DU")
-
+  
+```{r}
 #DU = Dobson Units
 ggplot(AnnGHG, aes(x=year, y=O3_DU))+
   geom_bar(stat="identity",position = "stack",  fill="maroon", width=0.9)+
@@ -104,13 +121,15 @@ ggplot(AnnGHG, aes(x=year, y=O3_DU))+
   ylab("03 (DU)")+
   scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2025, 4)))+
   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
+```
 
 #grouping AGGI and creating chart
 
 AnnGHG%>%
   group_by(year)%>%
   select("AGGI")
-
+  
+```{r}
 ggplot(AnnGHG, aes(x=year, y=AGGI))+
   geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
@@ -126,7 +145,9 @@ Findings given regression lines:
   -> O3 decreases as years go on but has more variation throughout the years. 
 
 attempting to start 10-year averages
-```{r}
+
+*Do not need to read this in again*
+
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 #AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 
@@ -134,6 +155,22 @@ AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 #  group_by("year")%>%
 #  select("CO2_ppm")
 
+
+*The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
+
+```{r}
+load("TornadoOutbreaks.RData")
+
+#Example: 
+BigDays.sfdfT$CH4_10year
+```
+NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
+
+**The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
+
+
+You can get rid of this: 
+```{r,eval = FALSE}
 #1990s 
 CO2_90avg = mean(AnnGHG[seq(31,42),2]) 
 CH4_90avg = mean(AnnGHG[seq(31,42),3])
@@ -198,16 +235,41 @@ cat(" AGGI Average:", AGGI_20avg, "\n")
 #   thousands <-filter(AnnGHG, year %in% c(2000,2009))
 # 
 # print(nineties)
+```
 
-# #Figure for 90s CO2 averages
-# ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
-#   geom_bar(mapping = aes(x=years),stat="identity",position = "stack",  fill="orange", width=0.9)+
-#   theme_bw()+
-#   xlab("Years Recorded")+
-#   ylab("CO2 (ppm)")+
-#   scale_x_continuous(expand=c(0,0), limits=c(1980,2030), breaks=c(seq(1980, 2030, 10)))+
-#   scale_y_continuous(expand=c(0,0), limits=c(0, 500), breaks=c(seq(0,500, 100)))
+*Example for plotting CO2:*
+```{r}
+#First: Get the 10-year average value for each year 1994 - 2022
+CO2 <- BigDays.sfdfT %>%
+  group_by(Year) %>%
+  summarize(CO2_10yr = max(CO2_10year))
+```
 
+```{r}
+#Second: Make the plot!
+ggplot(CO2) +
+  geom_line(aes(x = Year, y = CO2_10yr), 
+            color = "red",
+            linewidth = 1)  +
+  theme_bw() +
+  xlab("Year") +
+  ylab(expression(paste("10-year Average ",CO^2," Emissions [ppm]"))) +
+  theme(axis.text = element_text(size = 12), 
+        axis.text.x = element_text(angle = 45, 
+                                   vjust = 1.2, 
+                                   hjust = 1.2),
+        axis.title = element_text(size = 14), 
+        legend.text = element_text(size = 14),
+        ) +
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022, 2)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(345, 415), 
+                     breaks = seq(350, 415, 10)) 
+```
+
+```{r}
 # #Figure for 90s CH4 averages
 # ggplot(AnnGHG, aes(x = year, y = CH4_90avg))+
 #   geom_bar(stat="identity",position = "stack",  fill="pink", width=0.9)+
