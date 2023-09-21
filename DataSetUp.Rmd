@@ -735,6 +735,13 @@ BigDays.sfdfT <- cbind(BigDays.sfdfT, GHG_10year[,2:5], GHG_5year[,2:5], GHG_1ye
 ```
 
 ```{r}
+
+BigDays.sfdfT <- st_as_sf(BigDays.sfdfT)
+BigDayTornadoes <- st_as_sf(BigDayTornadoes)
+BigDayCentroids.df <- st_as_sf(BigDayCentroids.df)
+Groups.sfdfT <- st_as_sf(Groups.sfdfT)
+GroupTornadoes <- st_as_sf(GroupTornadoes)
+All_Tornadoes <- st_as_sf(All_Tornadoes)
 #save(BigDays.sfdfT, BigDayTornadoes, BigDayCentroids.df, Groups.sfdfT, GroupTornadoes, All_Tornadoes, file = "TornadoOutbreaks.RData")
 load("TornadoOutbreaks.RData")
 ```
