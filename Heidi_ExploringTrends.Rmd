@@ -128,6 +128,7 @@ Findings given regression lines:
 attempting to start 10-year averages
 ```{r}
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
+#AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 
 #AnnGHG%>%
 #  group_by("year")%>%
@@ -176,12 +177,13 @@ cat(" O3 Average:", O3_10avg, "\n")
 cat(" AGGI Average:", AGGI_10avg, "\n")
 
 #2020s 
-CO2_20avg = mean(AnnGHG[seq(61,72),2]) 
-CH4_20avg = mean(AnnGHG[seq(61,72),3])
-N2O_20avg = mean(AnnGHG[seq(61,72),4]) 
-SF6_20avg = mean(AnnGHG[seq(61,72),5]) 
-O3_20avg = mean(AnnGHG[seq(61,72),6]) 
-AGGI_20avg = mean(AnnGHG[seq(61,72),7]) 
+#Why are all of these N/A?
+CO2_20avg = mean(AnnGHG[seq(62,65),2]) 
+CH4_20avg = mean(AnnGHG[seq(62,65),3])
+N2O_20avg = mean(AnnGHG[seq(62,65),4]) 
+SF6_20avg = mean(AnnGHG[seq(62,65),5]) 
+O3_20avg = mean(AnnGHG[seq(62,65),6]) 
+AGGI_20avg = mean(AnnGHG[seq(62,65),7]) 
 cat("2020s Averages \n CO2 Average:", CO2_20avg, "\n")
 cat(" CH4 Average: ", CH4_20avg, "\n")
 cat(" N2O Average:", N2O_20avg, "\n")
@@ -189,14 +191,22 @@ cat(" SF6 Average:", SF6_20avg, "\n")
 cat(" O3 Average:", O3_20avg, "\n")
 cat(" AGGI Average:", AGGI_20avg, "\n")
 
-#Figure for 90s CO2 averages
-ggplot(AnnGHG, aes(x = year, y = CO2_90avg, CO2_00avg, CO2_10avg, CO2_20avg))+
-  geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
-  theme_bw()+
-  xlab("Years Recorded")+
-  ylab("CO2 (ppm)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1980,2030), breaks=c(seq(1980, 2030, 10)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0, 500), breaks=c(seq(0,500, 100)))
+#c(CO2_90avg, CO2_00avg, CO2_10avg, CO2_20avg)
+
+# AnnGHG%>%
+#   nineties <- filter(AnnGHG, year %in% c(1990,1999))
+#   thousands <-filter(AnnGHG, year %in% c(2000,2009))
+# 
+# print(nineties)
+
+# #Figure for 90s CO2 averages
+# ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
+#   geom_bar(mapping = aes(x=years),stat="identity",position = "stack",  fill="orange", width=0.9)+
+#   theme_bw()+
+#   xlab("Years Recorded")+
+#   ylab("CO2 (ppm)")+
+#   scale_x_continuous(expand=c(0,0), limits=c(1980,2030), breaks=c(seq(1980, 2030, 10)))+
+#   scale_y_continuous(expand=c(0,0), limits=c(0, 500), breaks=c(seq(0,500, 100)))
 
 # #Figure for 90s CH4 averages
 # ggplot(AnnGHG, aes(x = year, y = CH4_90avg))+
@@ -243,5 +253,6 @@ ggplot(AnnGHG, aes(x = year, y = CO2_90avg, CO2_00avg, CO2_10avg, CO2_20avg))+
 #   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
 #   scale_y_continuous(expand=c(0,0), limits=c(0,2), breaks=c(seq(0,2,0.1)))
 ```
+Cluster: >= 10 tornadoes on 1 convective day
 
  
