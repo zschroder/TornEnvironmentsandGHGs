@@ -30,14 +30,7 @@ dim(AnnGHG)
 str(AnnGHG)
 ```
 
-
-# grouping CO2_ppm and creating chart
-
-This code does not do anything and is unnecessary: 
-#AnnGHG%>%
- # group_by(year)%>%
- # select("CO2_ppm")
- 
+CO2 Trend Analysis Chart
 ```{r}  
 ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
@@ -48,12 +41,8 @@ ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   scale_x_continuous(expand=c(0,0), limits=c(1955,2025), breaks=c(seq(1960,2025,10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,500), breaks=c(seq(0,500,50)))
 ```
-#grouping CH4_ppn and creating chart
 
-Thiscode does not do anything and is unnecessary: 
-#AnnGHG%>%
-#  group_by(year)%>%
-#  select("CH4_ppb")
+CH4 Trend Analysis Chart
 ```{r}  
 ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   geom_bar(stat="identity",position="stack",  fill="pink", width=0.9)+
@@ -65,18 +54,12 @@ ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
 ```
 
-#grouping N2O_ppb and creating chart
-#Need to fix the zero in N2O needs to be and O
-
-*Here is the code to rename a column in R: *
+*Here is the code to rename a column in R: * Fixing the typo in the excel file zero to O
 ```{r}
 colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
 ```
 
-This code does not do anything and is unnecessary:
-AnnGHG%>%
-  group_by(year)%>%
-  select("N20_ppb")
+N2O Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
   geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
@@ -88,12 +71,7 @@ ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
   scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
 ``` 
 
-#grouping SF6_ppt and creating chart
-
-AnnGHG%>%
-  group_by(year)%>%
-  select("SF6_ppt")
-
+SF6 Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   geom_bar(stat="identity",position = "stack", fill="purple", width=0.9)+
@@ -105,12 +83,7 @@ ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
 ```
 
-#grouping O3_DU and creating chart
-
-AnnGHG%>%
-  group_by(year)%>%
-  select("O3_DU")
-  
+O3 Trend Analysis Chart  
 ```{r}
 #DU = Dobson Units
 ggplot(AnnGHG, aes(x=year, y=O3_DU))+
@@ -123,12 +96,7 @@ ggplot(AnnGHG, aes(x=year, y=O3_DU))+
   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
 ```
 
-#grouping AGGI and creating chart
-
-AnnGHG%>%
-  group_by(year)%>%
-  select("AGGI")
-  
+AGGI Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=AGGI))+
   geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
@@ -144,105 +112,37 @@ Findings given regression lines:
   -> CO2, CH4, N2O, SF6, AGGI  increases as years go on
   -> O3 decreases as years go on but has more variation throughout the years. 
 
-attempting to start 10-year averages
-
-*Do not need to read this in again*
-
-AnnGHG <- read.csv("AnnualAverages_GHG.csv")
-#AnnGHG <- read.csv("AnnualAverages_GHG.csv")
-
-#AnnGHG%>%
-#  group_by("year")%>%
-#  select("CO2_ppm")
-
-
 *The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
 
 ```{r}
 load("TornadoOutbreaks.RData")
 
+str(BigDays.sfdfT)
+
 #Example: 
-BigDays.sfdfT$CH4_10year
+#BigDays.sfdfT$CH4_10year
+#BigDays.sfdfT$CO2_10year
 ```
 NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
 
 **The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
 
 
-You can get rid of this: 
-```{r,eval = FALSE}
-#1990s 
-CO2_90avg = mean(AnnGHG[seq(31,42),2]) 
-CH4_90avg = mean(AnnGHG[seq(31,42),3])
-N2O_90avg = mean(AnnGHG[seq(31,42),4]) 
-SF6_90avg = mean(AnnGHG[seq(31,42),5]) 
-O3_90avg = mean(AnnGHG[seq(31,42),6]) 
-AGGI_90avg = mean(AnnGHG[seq(31,42),7]) 
-cat("1990s Averages \n CO2 Average:", CO2_90avg, "\n")
-cat(" CH4 Average: ", CH4_90avg, "\n")
-cat(" N2O Average:", N2O_90avg, "\n")
-cat(" SF6 Average:", SF6_90avg, "\n")
-cat(" O3 Average:", O3_90avg, "\n")
-cat(" AGGI Average:", AGGI_90avg, "\n")
-
-#2000s 
-CO2_00avg = mean(AnnGHG[seq(41,52),2]) 
-CH4_00avg = mean(AnnGHG[seq(41,52),3])
-N2O_00avg = mean(AnnGHG[seq(41,52),4]) 
-SF6_00avg = mean(AnnGHG[seq(41,52),5]) 
-O3_00avg = mean(AnnGHG[seq(41,52),6]) 
-AGGI_00avg = mean(AnnGHG[seq(41,52),7]) 
-cat("2000s Averages \n CO2 Average:", CO2_00avg, "\n")
-cat(" CH4 Average: ", CH4_00avg, "\n")
-cat(" N2O Average:", N2O_00avg, "\n")
-cat(" SF6 Average:", SF6_00avg, "\n")
-cat(" O3 Average:", O3_00avg, "\n")
-cat(" AGGI Average:", AGGI_00avg, "\n")
-
-#2010s
-CO2_10avg = mean(AnnGHG[seq(51,62),2]) 
-CH4_10avg = mean(AnnGHG[seq(51,62),3])
-N2O_10avg = mean(AnnGHG[seq(51,62),4]) 
-SF6_10avg = mean(AnnGHG[seq(51,62),5]) 
-O3_10avg = mean(AnnGHG[seq(51,62),6]) 
-AGGI_10avg = mean(AnnGHG[seq(51,62),7]) 
-cat("2010s Averages \n CO2 Average:", CO2_10avg, "\n")
-cat(" CH4 Average: ", CH4_10avg, "\n")
-cat(" N2O Average:", N2O_10avg, "\n")
-cat(" SF6 Average:", SF6_10avg, "\n")
-cat(" O3 Average:", O3_10avg, "\n")
-cat(" AGGI Average:", AGGI_10avg, "\n")
-
-#2020s 
-#Why are all of these N/A?
-CO2_20avg = mean(AnnGHG[seq(62,65),2]) 
-CH4_20avg = mean(AnnGHG[seq(62,65),3])
-N2O_20avg = mean(AnnGHG[seq(62,65),4]) 
-SF6_20avg = mean(AnnGHG[seq(62,65),5]) 
-O3_20avg = mean(AnnGHG[seq(62,65),6]) 
-AGGI_20avg = mean(AnnGHG[seq(62,65),7]) 
-cat("2020s Averages \n CO2 Average:", CO2_20avg, "\n")
-cat(" CH4 Average: ", CH4_20avg, "\n")
-cat(" N2O Average:", N2O_20avg, "\n")
-cat(" SF6 Average:", SF6_20avg, "\n")
-cat(" O3 Average:", O3_20avg, "\n")
-cat(" AGGI Average:", AGGI_20avg, "\n")
-
-#c(CO2_90avg, CO2_00avg, CO2_10avg, CO2_20avg)
-
-# AnnGHG%>%
-#   nineties <- filter(AnnGHG, year %in% c(1990,1999))
-#   thousands <-filter(AnnGHG, year %in% c(2000,2009))
-# 
-# print(nineties)
-```
-
 *Example for plotting CO2:*
 ```{r}
 #First: Get the 10-year average value for each year 1994 - 2022
-CO2 <- BigDays.sfdfT %>%
+#BigDays.sfdfT%>%
+ # group_by(Year)%>%
+ # summarize(CO2_10yr = max(CO2_10year))
+
+CH4 <- BigDays.sfdfT %>%
   group_by(Year) %>%
-  summarize(CO2_10yr = max(CO2_10year))
+  summarize(max(CH4_10year))
+
+
+#CO2 <- BigDays.sfdfT %>%
+#  group_by(Year) %>%
+ # summarize(CO2_10yr = max(CO2_10year))
 ```
 
 ```{r}
