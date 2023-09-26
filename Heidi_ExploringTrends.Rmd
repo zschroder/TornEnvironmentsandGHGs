@@ -122,36 +122,24 @@ load("TornadoOutbreaks.RData")
 
 #Example: 
 #BigDays.sfdfT$CH4_10year
-BigDays.sfdfT$CO2_10year
+dim(BigDays.sfdfT)
+
+
 ```
 NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
 
 **The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
 
 
-*Example for plotting CO2:*
+Grouping CO2 10 averages
 ```{r}
 #First: Get the 10-year average value for each year 1994 - 2022
 
 #CO2 10 year averages
-#CO2 <- BigDays.sfdfT %>%
-#  group_by(Year) %>%
-#  summarize(CO2_10yr = max(CO2_10year))
-
-#CH4 10 year average
-CH4 <- BigDays.sfdfT%>%
+CO2 <- BigDays.sfdfT[,-80] %>%
   group_by(Year) %>%
-  summarize(CH4_10yr = max(CH4_10year))
+  summarize(CO2_10yr = max(CO2_10year))
 
-#O3 10 year averages
-#O3 <- BigDays.sfdfT %>%
- # group_by(Year) %>%
- # summarize(O3_10yr=max(O3_10year))
-
-#AGGI 10 year averages
-#AGGI <- BigDays.sfdfT %>%
-  #group_by(Year) %>%
-  #summarize(AGGI_10yr=max(AGGI_10year))
 ```
 
 CO2 10-year averages trend
@@ -179,13 +167,71 @@ ggplot(CO2) +
                      breaks = seq(350, 415, 10)) 
 ```
 
+Grouping CH4 10 year averages
+```{r}
+CH4 <- BigDays.sfdfT[,-80]%>%
+  group_by(Year) %>%
+  summarize(CH4_10yr = max(CH4_10year))
+
+```
+
+CH4 10 year averages trend
+```{r}
+ggplot(CH4)+
+  geom_line(aes(x=Year, y= CH4_10yr), color="midnightblue",linewidth=1 )+
+  theme_bw()+
+  xlab("Year")+
+  ylab("10-Year average CH4 Emissions [ppb]")+
+  scale_x_continuous(expand=c(0,0), limits=c(1994, 2022), breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand=c(0,0), limits=c(1720,1880), breaks=seq(1720,1880, 20))
+
+```
+Grouping O3 10 year averages
+```{r}
+O3 <- BigDays.sfdfT[,-80] %>%
+  group_by(Year) %>%
+  summarize(O3_10yr=max(O3_10year))
+
+```
+
+O3 10-year averages trend
+```{r}
+ggplot(O3)+
+  geom_line(aes(x=Year, y= O3_10yr), color="lemonchiffon4",linewidth=1 )+
+  theme_bw()+
+  xlab("Year")+
+  ylab("10-Year average O3 Emissions [DU]")+
+  scale_x_continuous(expand=c(0,0), limits=c(1994, 2022), breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand=c(0,0), limits=c(90,150), breaks=seq(90,150, 20))
+  
+```
+
+Grouping AGGI 10 year averages
+```{r}
+AGGI <- BigDays.sfdfT[,-80]%>%
+  group_by(Year) %>%
+  summarize(AGGI_10yr=max(AGGI_10year))
+```
+
+AGGI 10-year averages trend
+```{r}
+ggplot(AGGI)+
+  geom_line(aes(x=Year, y= AGGI_10yr), color="goldenrod1",linewidth=1 )+
+  theme_bw()+
+  xlab("Year")+
+  ylab("10-Year average AGGI Emissions")+
+  scale_x_continuous(expand=c(0,0), limits=c(1994, 2022), breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand=c(0,0), limits=c(0.5,2), breaks=seq(0.5,2,0.1))
+  
+```
+
+
+
 Cluster: >= 10 tornadoes on 1 convective day
 ```{r}
-BigDays.sfdfT%>%
+BigDays.sfdfT[,-80]%>%
   filter(nT>=10)
-  #summarize(totalcounts = cDate)
-
-
+  summarize(cDate)
 
 ```
 
