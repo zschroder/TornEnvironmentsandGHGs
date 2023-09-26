@@ -16,6 +16,7 @@ output: html_document
 # Do not need to do these everytime. Once installed on your computer you are finished. 
 #install.packages("dplyr")
 #install.packages("ggplot2")
+#install.packages("tidyverse")
 ```
 
 ```{r}
@@ -133,12 +134,12 @@ NOTE: These are only for the years 1994 to 2022. Moving forward, you will only u
 #First: Get the 10-year average value for each year 1994 - 2022
 
 #CO2 10 year averages
-CO2 <- BigDays.sfdfT %>%
-  group_by(Year) %>%
-  summarize(CO2_10yr = max(CO2_10year))
+#CO2 <- BigDays.sfdfT %>%
+#  group_by(Year) %>%
+#  summarize(CO2_10yr = max(CO2_10year))
 
 #CH4 10 year average
-CH4 <- BigDays.sfdfT %>%
+CH4 <- BigDays.sfdfT%>%
   group_by(Year) %>%
   summarize(CH4_10yr = max(CH4_10year))
 
@@ -153,6 +154,7 @@ CH4 <- BigDays.sfdfT %>%
   #summarize(AGGI_10yr=max(AGGI_10year))
 ```
 
+CO2 10-year averages trend
 ```{r}
 #Second: Make the plot!
 ggplot(CO2) +
@@ -177,52 +179,14 @@ ggplot(CO2) +
                      breaks = seq(350, 415, 10)) 
 ```
 
-```{r}
-# #Figure for 90s CH4 averages
-# ggplot(AnnGHG, aes(x = year, y = CH4_90avg))+
-#   geom_bar(stat="identity",position = "stack",  fill="pink", width=0.9)+
-#   theme_bw()+
-#   xlab("Years Recorded")+
-#   ylab("CH4 (ppb)")+
-#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-#   scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
-# 
-# #Figure for 90s N2O averages
-# ggplot(AnnGHG, aes(x = year, y = N2O_90avg))+
-#   geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
-#   theme_bw()+
-#   xlab("Years Recorded")+
-#   ylab("N2O (ppb)")+
-#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-#   scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
-# 
-# #Figure for 90s SF6  averages
-# ggplot(AnnGHG, aes(x = year, y = SF6_90avg))+
-#   geom_bar(stat="identity",position = "stack",  fill="purple", width=0.9)+
-#   theme_bw()+
-#   xlab("Years Recorded")+
-#   ylab("SF6 (ppt)")+
-#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-#   scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
-# 
-# #Figure for 90s O3 averages
-# ggplot(AnnGHG, aes(x = year, y = O3_90avg))+
-#   geom_bar(stat="identity",position = "stack",  fill="maroon", width=0.9)+
-#   theme_bw()+
-#   xlab("Years Recorded")+
-#   ylab("O3 (DU)")+
-#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-#   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
-# 
-# #Figure for 90s AGGI averages
-# ggplot(AnnGHG, aes(x = year, y = AGGI_90avg))+
-#   geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
-#   theme_bw()+
-#   xlab("Years Recorded")+
-#   ylab("AGGI")+
-#   scale_x_continuous(expand=c(0,0), limits=c(1989,2000), breaks=c(seq(1989, 2000, 1)))+
-#   scale_y_continuous(expand=c(0,0), limits=c(0,2), breaks=c(seq(0,2,0.1)))
-```
 Cluster: >= 10 tornadoes on 1 convective day
+```{r}
+BigDays.sfdfT%>%
+  filter(nT>=10)
+  #summarize(totalcounts = cDate)
+
+
+
+```
 
  
