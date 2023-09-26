@@ -229,9 +229,11 @@ ggplot(AGGI)+
 
 Cluster: >= 10 tornadoes on 1 convective day
 ```{r}
-BigDays.sfdfT[,-80]%>%
+Cluster <- BigDays.sfdfT[,-80]%>%
+  group_by(cDate)%>%
   filter(nT>=10)
-  summarize(cDate)
+
+
 
 ```
 
