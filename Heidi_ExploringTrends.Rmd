@@ -117,11 +117,11 @@ Findings given regression lines:
 ```{r}
 load("TornadoOutbreaks.RData")
 
-str(BigDays.sfdfT)
+#str(BigDays.sfdfT)
 
 #Example: 
 #BigDays.sfdfT$CH4_10year
-#BigDays.sfdfT$CO2_10year
+BigDays.sfdfT$CO2_10year
 ```
 NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
 
@@ -131,18 +131,26 @@ NOTE: These are only for the years 1994 to 2022. Moving forward, you will only u
 *Example for plotting CO2:*
 ```{r}
 #First: Get the 10-year average value for each year 1994 - 2022
-#BigDays.sfdfT%>%
- # group_by(Year)%>%
- # summarize(CO2_10yr = max(CO2_10year))
 
+#CO2 10 year averages
+CO2 <- BigDays.sfdfT %>%
+  group_by(Year) %>%
+  summarize(CO2_10yr = max(CO2_10year))
+
+#CH4 10 year average
 CH4 <- BigDays.sfdfT %>%
   group_by(Year) %>%
-  summarize(max(CH4_10year))
+  summarize(CH4_10yr = max(CH4_10year))
 
+#O3 10 year averages
+#O3 <- BigDays.sfdfT %>%
+ # group_by(Year) %>%
+ # summarize(O3_10yr=max(O3_10year))
 
-#CO2 <- BigDays.sfdfT %>%
-#  group_by(Year) %>%
- # summarize(CO2_10yr = max(CO2_10year))
+#AGGI 10 year averages
+#AGGI <- BigDays.sfdfT %>%
+  #group_by(Year) %>%
+  #summarize(AGGI_10yr=max(AGGI_10year))
 ```
 
 ```{r}
