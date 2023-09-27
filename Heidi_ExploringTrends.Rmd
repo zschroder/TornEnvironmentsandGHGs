@@ -225,16 +225,33 @@ ggplot(AGGI)+
   
 ```
 
-
-
 Cluster: >= 10 tornadoes on 1 convective day
 ```{r}
 Cluster <- BigDays.sfdfT[,-80]%>%
   group_by(cDate)%>%
   filter(nT>=10)
 
-
-
 ```
 
+Total Outbreaks per year
+```{r}
+T_yr <-BigDays.sfdfT[,-80]%>%
+  group_by(Year)%>%
+  summarize(T_Year= max(cDate))
+
+```
+ 
+Outbreaks per year trend analysis
+```{r}
+ggplot(T_yr)+
+  geom_line(aes(x=Year, y=T_Year), color="plum", linewidth = 1)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Number of Tornado Outbreaks per Year")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_y_continuous(expand = c(0,0))
+  
+
+```
+ 
  
