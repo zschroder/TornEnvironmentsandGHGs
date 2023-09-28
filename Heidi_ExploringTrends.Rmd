@@ -17,11 +17,13 @@ output: html_document
 #install.packages("dplyr")
 #install.packages("ggplot2")
 #install.packages("tidyverse")
+#install.packages("gridExtra") I have not installed this package yet. Waiting to see if this is the one I need to create the 4x6 layout fo rthe 10 year averages
 ```
 
 ```{r}
 library("dplyr")
 library("ggplot2")
+#library("gridExtra")
 ```
 
 creating general trend and regression charts 
@@ -186,6 +188,7 @@ ggplot(CH4)+
   scale_y_continuous(expand=c(0,0), limits=c(1720,1880), breaks=seq(1720,1880, 20))
 
 ```
+
 Grouping O3 10 year averages
 ```{r}
 O3 <- BigDays.sfdfT[,-80] %>%
@@ -225,9 +228,17 @@ ggplot(AGGI)+
   
 ```
 
-Cluster: >= 10 tornadoes on 1 convective day
+Combined 10-year averages
 ```{r}
-Cluster <- BigDays.sfdfT[,-80]%>%
+
+#Might need to use the grid.arrange funcation from the gridExtra package. 
+
+```
+
+
+Cluster: >= 10 tornadoes 
+```{r}
+BigDays.sfdfT[,-80]%>%
   group_by(cDate)%>%
   filter(nT>=10)
 
@@ -235,22 +246,31 @@ Cluster <- BigDays.sfdfT[,-80]%>%
 
 Total Outbreaks per year
 ```{r}
-T_yr <-BigDays.sfdfT[,-80]%>%
+T_yr<-BigDays.sfdfT[,-80]%>%
+  group_by(cDate)%>%
   group_by(Year)%>%
-  summarize(T_Year= max(cDate))
-
+  summarize(T_Year = n())
+  
 ```
  
 Outbreaks per year trend analysis
 ```{r}
-ggplot(T_yr)+
-  geom_line(aes(x=Year, y=T_Year), color="plum", linewidth = 1)+
+ggplot(T_yr,aes(x=Year, y=T_Year))+
+  geom_bar(stat = "identity",position="stack", fill="plum", width = 0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
   theme_bw()+
   xlab("Year")+
   ylab("Number of Tornado Outbreaks per Year")+
-  scale_x_continuous(expand = c(0,0))+
-  scale_y_continuous(expand = c(0,0))
-  
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand = c(0,0),limits=c(0,50),  breaks=seq(0,50,5))
+
+ggplot(T_yr)+
+  geom_line(aes(x=Year, y=T_Year), color="plum", linewidth=1)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Number of Tornado Outbreaks per Year")+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand = c(0,0),limits=c(20,50),  breaks=seq(20,50,5))
 
 ```
  
