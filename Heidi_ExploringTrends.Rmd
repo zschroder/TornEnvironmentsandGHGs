@@ -20,6 +20,7 @@ output: html_document
 #install.packages("tmap")
 install.packages("remotes")
 remotes::install_github("ropensci/USAboundaries")
+remotes::install_github("ropensci/USAboundariesData")
 #install.packages("gridExtra") I have not installed this package yet. Waiting to see if this is the one I need to create the 4x6 layout fo rthe 10 year averages
 ```
 
@@ -27,7 +28,7 @@ remotes::install_github("ropensci/USAboundaries")
 library("dplyr")
 library("ggplot2")
 library("tmap")
-library("USAboundaries")
+library(USAboundaries)
 #library("gridExtra")
 ```
 
@@ -277,7 +278,8 @@ ggplot(T_yr)+
  
 Spatial Distribution of T-Outbreaks in the US
 ```{r}
-
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
+stateBorders <- us_states(states = sts)
 
 ```
 
