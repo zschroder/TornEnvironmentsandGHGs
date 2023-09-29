@@ -17,12 +17,17 @@ output: html_document
 #install.packages("dplyr")
 #install.packages("ggplot2")
 #install.packages("tidyverse")
+#install.packages("tmap")
+install.packages("remotes")
+remotes::install_github("ropensci/USAboundaries")
 #install.packages("gridExtra") I have not installed this package yet. Waiting to see if this is the one I need to create the 4x6 layout fo rthe 10 year averages
 ```
 
 ```{r}
 library("dplyr")
 library("ggplot2")
+library("tmap")
+library("USAboundaries")
 #library("gridExtra")
 ```
 
@@ -114,6 +119,20 @@ ggplot(AnnGHG, aes(x=year, y=AGGI))+
 Findings given regression lines:
   -> CO2, CH4, N2O, SF6, AGGI  increases as years go on
   -> O3 decreases as years go on but has more variation throughout the years. 
+  
+Combined annual  averages
+```{r}
+
+#Might need to use the grid.arrange funcation from the gridExtra package. 
+#CH4_ten <- rnorm(1994,2022,2)
+
+#par(mfrow =c(4,4), mar = c(1,1,1,1))
+
+    
+#plot(CO2_10yr)
+#barplot(CH4_ten)
+
+```
 
 *The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
 
@@ -131,7 +150,6 @@ dim(BigDays.sfdfT)
 NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
 
 **The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
-
 
 Grouping CO2 10 averages
 ```{r}
@@ -228,14 +246,6 @@ ggplot(AGGI)+
   
 ```
 
-Combined 10-year averages
-```{r}
-
-#Might need to use the grid.arrange funcation from the gridExtra package. 
-
-```
-
-
 Cluster: >= 10 tornadoes 
 ```{r}
 BigDays.sfdfT[,-80]%>%
@@ -255,15 +265,6 @@ T_yr<-BigDays.sfdfT[,-80]%>%
  
 Outbreaks per year trend analysis
 ```{r}
-ggplot(T_yr,aes(x=Year, y=T_Year))+
-  geom_bar(stat = "identity",position="stack", fill="plum", width = 0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Year")+
-  ylab("Number of Tornado Outbreaks per Year")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0,0),limits=c(0,50),  breaks=seq(0,50,5))
-
 ggplot(T_yr)+
   geom_line(aes(x=Year, y=T_Year), color="plum", linewidth=1)+
   theme_bw()+
@@ -274,4 +275,10 @@ ggplot(T_yr)+
 
 ```
  
- 
+Spatial Distribution of T-Outbreaks in the US
+```{r}
+
+
+```
+
+
