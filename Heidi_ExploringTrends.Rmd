@@ -18,17 +18,19 @@ output: html_document
 #install.packages("ggplot2")
 #install.packages("tidyverse")
 #install.packages("tmap")
-install.packages("remotes")
-remotes::install_github("ropensci/USAboundaries")
-remotes::install_github("ropensci/USAboundariesData")
-#install.packages("gridExtra") I have not installed this package yet. Waiting to see if this is the one I need to create the 4x6 layout fo rthe 10 year averages
+#install.packages("devtools")
+#devtools::install_github("ropensci/USAboundaries")
+#devtools::install_github("ropensci/USAboundariesData")
+install.packages("gridExtra")
 ```
 
 ```{r}
 library("dplyr")
 library("ggplot2")
 library("tmap")
-library(USAboundaries)
+library("USAboundaries")
+library("sf")
+library("gridExtra")
 #library("gridExtra")
 ```
 
@@ -44,9 +46,11 @@ CO2 Trend Analysis Chart
 ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black",linewidth=1.5)+
+  ggtitle(bquote("Annual Average of Carbon Dioxide CO"[2]))+
   theme_bw()+
-  xlab("Years Recorded")+
-  ylab("CO2 Concenration (ppm)")+
+  theme(plot.title=element_text(hjust=0.5))+
+  xlab("Year")+
+  ylab("Concenration (ppm)")+
   scale_x_continuous(expand=c(0,0), limits=c(1955,2025), breaks=c(seq(1960,2025,10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,500), breaks=c(seq(0,500,50)))
 ```
@@ -56,7 +60,9 @@ CH4 Trend Analysis Chart
 ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   geom_bar(stat="identity",position="stack",  fill="pink", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  ggtitle(bquote("Annual Average of Methane CH"[4]))+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Years Recorded")+
   ylab("CH4 (ppb)")+
   scale_x_continuous(expand=c(0,0), limits=c(1980,2025), breaks=c(seq(1980, 2025, 10)))+
@@ -71,9 +77,11 @@ colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
 N2O Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
-  geom_bar(stat="identity",position = "stack",  fill="green", width=0.9)+
+  geom_bar(stat="identity",position = "stack",  fill="forestgreen", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
+  ggtitle(bquote("Annual Average of Nitrous Oxide N[2]O"))+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Years Recorded")+
   ylab("N2O (ppb)")+
   scale_x_continuous(expand=c(0,0), limits=c(2000,2025), breaks=c(seq(2000, 2025, 4)))+
@@ -85,7 +93,9 @@ SF6 Trend Analysis Chart
 ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   geom_bar(stat="identity",position = "stack", fill="purple", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
+  ggtitle(bquote("Annual Average of Sulfur Hexfloride SF"[6]))+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Years Recorded")+
   ylab("SF6 (ppt)")+
   scale_x_continuous(expand=c(0,0), limits=c(1995,2025), breaks=c(seq(1995, 2025, 4)))+
@@ -98,7 +108,9 @@ O3 Trend Analysis Chart
 ggplot(AnnGHG, aes(x=year, y=O3_DU))+
   geom_bar(stat="identity",position = "stack",  fill="maroon", width=0.9)+
   stat_smooth(method = "lm", formula= y~x, geom = "smooth", color="black", linewidth=1.5)+
+  ggtitle(bquote("Annual Average of Ozone O"[3]))+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Years Recorded")+
   ylab("03 (DU)")+
   scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2025, 4)))+
@@ -110,7 +122,9 @@ AGGI Trend Analysis Chart
 ggplot(AnnGHG, aes(x=year, y=AGGI))+
   geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  ggtitle("Annual Average for Annual Greenhouse Gas Index (AGGI)")+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Years Recorded")+
   ylab("AGGI")+
   scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2025, 4)))+
@@ -123,17 +137,36 @@ Findings given regression lines:
   
 Combined annual  averages
 ```{r}
+CO2_avg <- qplot(year, CO2_ppm, data = AnnGHG)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of CO2")
+CH4_avg <- qplot(year, CH4_ppb, data = AnnGHG)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of CH4")
+N2O_avg <- qplot(year, N2O_ppb, data=AnnGHG)+
+  stat_smooth(method ="lm", formula = y~x, geom = "smooth", color="goldenrod3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of N2O")
+SF6_avg <- qplot(year, SF6_ppt, data=AnnGHG)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="forestgreen", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of SF6")
+O3_avg <-  qplot(Year, O3_DU, data = AnnGHG)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of O3")
+AGGI_avg<- qplot(Year, AGGI_1year, data= BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of AGGI")
 
-#Might need to use the grid.arrange funcation from the gridExtra package. 
-#CH4_ten <- rnorm(1994,2022,2)
+grid.arrange(CO2_avg, CH4_avg,N2O_avg,SF6_avg,O3_avg, AGGI_avg, nrow=2,ncol=3, top ="Annual Averages of Greenhouse Gases")
 
-#par(mfrow =c(4,4), mar = c(1,1,1,1))
-
-    
-#plot(CO2_10yr)
-#barplot(CH4_ten)
 
 ```
+
 
 *The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
 
@@ -239,13 +272,40 @@ AGGI 10-year averages trend
 ```{r}
 ggplot(AGGI)+
   geom_line(aes(x=Year, y= AGGI_10yr), color="goldenrod1",linewidth=1 )+
+  ggtitle("Ten year Average of \n Annual Greenhouse Gas Index (AGGI)")+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Year")+
   ylab("10-Year average AGGI Emissions")+
   scale_x_continuous(expand=c(0,0), limits=c(1994, 2022), breaks=seq(1994,2022,2))+
   scale_y_continuous(expand=c(0,0), limits=c(0.5,2), breaks=seq(0.5,2,0.1))
   
 ```
+
+4x4 Plot of GHG Avg/year
+```{r}
+CO2_avg <- qplot(Year, CO2_1year, data = BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of CO2")
+CH4_avg <- qplot(Year, CH4_1year, data = BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of CH4")
+O3_avg <-  qplot(Year, O3_1year, data = BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of O3")
+AGGI_avg<- qplot(Year, AGGI_1year, data= BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
+  theme_bw()+
+  ylab("Average of AGGI")
+
+grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gases")
+
+
+```
+
 
 Cluster: >= 10 tornadoes 
 ```{r}
@@ -267,8 +327,10 @@ T_yr<-BigDays.sfdfT[,-80]%>%
 Outbreaks per year trend analysis
 ```{r}
 ggplot(T_yr)+
-  geom_line(aes(x=Year, y=T_Year), color="plum", linewidth=1)+
+  geom_line(aes(x=Year, y=T_Year), color="plum3", linewidth=1)+
+  ggtitle("Total Tornado Outbreaks Per Year")+
   theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
   xlab("Year")+
   ylab("Number of Tornado Outbreaks per Year")+
   scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
@@ -280,6 +342,11 @@ Spatial Distribution of T-Outbreaks in the US
 ```{r}
 sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
 stateBorders <- us_states(states = sts)
+
+library(sf)
+
+sp::coordinates(BigDays.sfdfT) <- ~ sLon + sLat
+BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
 
 ```
 
