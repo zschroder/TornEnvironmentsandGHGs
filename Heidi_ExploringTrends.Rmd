@@ -21,7 +21,7 @@ output: html_document
 #install.packages("devtools")
 #devtools::install_github("ropensci/USAboundaries")
 #devtools::install_github("ropensci/USAboundariesData")
-install.packages("gridExtra")
+#install.packages("gridExtra")
 ```
 
 ```{r}
@@ -31,7 +31,6 @@ library("tmap")
 library("USAboundaries")
 library("sf")
 library("gridExtra")
-#library("gridExtra")
 ```
 
 creating general trend and regression charts 
@@ -138,31 +137,31 @@ Findings given regression lines:
 Combined annual  averages
 ```{r}
 CO2_avg <- qplot(year, CO2_ppm, data = AnnGHG)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
+  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
   theme_bw()+
   ylab("Average of CO2")
 CH4_avg <- qplot(year, CH4_ppb, data = AnnGHG)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
+  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of CH4")
 N2O_avg <- qplot(year, N2O_ppb, data=AnnGHG)+
-  stat_smooth(method ="lm", formula = y~x, geom = "smooth", color="goldenrod3", linewidth=1.5)+
+  #stat_smooth(method ="lm", formula = y~x, geom = "smooth", color="goldenrod3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of N2O")
 SF6_avg <- qplot(year, SF6_ppt, data=AnnGHG)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="forestgreen", linewidth=1.5)+
+  #stat_smooth(method = "lm", formula = y~x, geom="smooth", color="forestgreen", linewidth=1.5)+
   theme_bw()+
   ylab("Average of SF6")
-O3_avg <-  qplot(Year, O3_DU, data = AnnGHG)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
+O3_avg <-  qplot(year, O3_DU, data = AnnGHG)+
+  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of O3")
-AGGI_avg<- qplot(Year, AGGI_1year, data= BigDays.sfdfT)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
+AGGI_avg<- qplot(year, AGGI_1year, data= BigDays.sfdfT)+
+  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of AGGI")
 
-grid.arrange(CO2_avg, CH4_avg,N2O_avg,SF6_avg,O3_avg, AGGI_avg, nrow=2,ncol=3, top ="Annual Averages of Greenhouse Gases")
+grid.arrange(CO2_avg, CH4_avg, N2O_avg, SF6_avg, O3_avg, AGGI_avg,  ncol=3, top ="Annual Averages of Greenhouse Gases")
 
 
 ```
@@ -321,7 +320,9 @@ T_yr<-BigDays.sfdfT[,-80]%>%
   group_by(cDate)%>%
   group_by(Year)%>%
   summarize(T_Year = n())
-  
+
+CO2_1avg <-BigDays.sfdfT[,-80]%>%
+  group_by(CO2_1year)
 ```
  
 Outbreaks per year trend analysis
@@ -337,6 +338,17 @@ ggplot(T_yr)+
   scale_y_continuous(expand = c(0,0),limits=c(20,50),  breaks=seq(20,50,5))
 
 ```
+ 
+```{r}
+ggplot(T_yr,CO2_1avg)+
+  geom_point(aes( x=T_Year, y = CO2_1year),stat="identity", position = "stack", fill="orchid3")+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  xlab("Total Outbreaks per Year")+
+  ylab("CO2 Concenrations (ppm)")
+  
+```
+ 
  
 Spatial Distribution of T-Outbreaks in the US
 ```{r}
