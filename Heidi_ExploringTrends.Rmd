@@ -38,6 +38,8 @@ creating general trend and regression charts
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 dim(AnnGHG)
 str(AnnGHG)
+
+
 ```
 
 CO2 Trend Analysis Chart
@@ -166,6 +168,20 @@ grid.arrange(CO2_avg, CH4_avg, N2O_avg, SF6_avg, O3_avg, AGGI_avg,  ncol=3, top 
 
 ```
 
+Total annual average of GHG
+```{r}
+
+CO2_Average <- mean(AnnGHG$CO2_ppm)
+CH4_Average <- mean(AnnGHG$CH4_ppb)
+O3_Average <- mean(AnnGHG$O3_DU)
+AGGI_Average<-mean(AnnGHG$AGGI)
+
+print(CO2_Average)
+print(CH4_Average)
+print(O3_Average)
+print(AGGI_Average)
+
+```
 
 *The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
 
@@ -357,8 +373,11 @@ stateBorders <- us_states(states = sts)
 
 library(sf)
 
-sp::coordinates(BigDays.sfdfT) <- ~ sLon + sLat
 BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
+print(BigDays.sf.dfT)
+coordinates <- BigDays.sf.dfT[,"Lat","Lon"] #milrad helped with this
+print(coordinates)
+#BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
 
 ```
 
