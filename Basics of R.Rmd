@@ -474,6 +474,8 @@ The `summarize` function is a great way to make tables of information about your
 Torn.dat %>%
   group_by(mag) %>% #groups data by the magnitude column
   summarize(totalcounts = n()) #calculates the number of tornadoes in each group (i.e., mag)
+
+
 ```
 
 Using the `filter()` function: 
@@ -682,8 +684,8 @@ library(tmap)
 Get USA data using a specialty package from github called `USAboundaries()`. This can be used to get a base map for your figures. 
 
 ```{r}
-#remotes::install_github("ropensci/USAboundaries")
-#remotes::install_github("ropensci/USAboundariesData")
+remotes::install_github("ropensci/USAboundaries")
+remotes::install_github("ropensci/USAboundariesData")
 library(USAboundaries)
 ```
 
@@ -706,6 +708,9 @@ library(sf)
 
 sp::coordinates(Torn.dat) <- ~ slon + slat
 Torn.dat <- st_as_sf(Torn.dat)
+
+print(coordinates)
+#print(sp:coordinates)
 ```
 
 Making a map using tmap: 
