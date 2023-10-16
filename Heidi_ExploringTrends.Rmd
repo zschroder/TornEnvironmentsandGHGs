@@ -77,7 +77,7 @@ colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
 
 N2O Trend Analysis Chart
 ```{r}
-ggplot(AnnGHG, aes(x=year, y=N20_ppb))+
+ggplot(AnnGHG, aes(x=year, y=N2O_ppb))+
   geom_bar(stat="identity",position = "stack",  fill="forestgreen", width=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
   ggtitle(bquote("Annual Average of Nitrous Oxide N[2]O"))+
@@ -163,7 +163,7 @@ AGGI_avg<- qplot(year, AGGI_1year, data= BigDays.sfdfT)+
   theme_bw()+
   ylab("Average of AGGI")
 
-grid.arrange(CO2_avg, CH4_avg, N2O_avg, SF6_avg, O3_avg, AGGI_avg,  ncol=3, top ="Annual Averages of Greenhouse Gases")
+grid.arrange(CO2_avg, CH4_avg, N2O_avg, SF6_avg, O3_avg, AGGI_avg,  ncol=3 , nrow=2, top ="Annual Averages of Greenhouse Gases")
 
 
 ```
@@ -297,7 +297,7 @@ ggplot(AGGI)+
   
 ```
 
-4x4 Plot of GHG Avg/year
+4x4 Plot of GHG Avg/year (focused on main four)
 ```{r}
 CO2_avg <- qplot(Year, CO2_1year, data = BigDays.sfdfT)+
   stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
@@ -316,11 +316,16 @@ AGGI_avg<- qplot(Year, AGGI_1year, data= BigDays.sfdfT)+
   theme_bw()+
   ylab("Average of AGGI")
 
-grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gases")
+grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions")
 
 
 ```
 
+4x4 Plot of 10-year Averages(main four)
+```{r}
+grid.arrange(AGGI, O3, CH4, CO2, nrow=2, ncol=2, top="Ten year Averages of Greenhouse Gas Emissions")
+
+```
 
 Cluster: >= 10 tornadoes 
 ```{r}
@@ -371,13 +376,11 @@ Spatial Distribution of T-Outbreaks in the US
 sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
 stateBorders <- us_states(states = sts)
 
-library(sf)
-
 BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
-print(BigDays.sf.dfT)
-coordinates <- BigDays.sf.dfT[,"Lat","Lon"] #milrad helped with this
-print(coordinates)
-#BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
+coordinates <- BigDays.sf.dfT[,"Lat","Lon"] 
+
+tm_shape(stateBorders, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m   +no_defs")
+tm_shape(coordinates)
 
 ```
 
