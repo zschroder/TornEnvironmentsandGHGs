@@ -22,6 +22,7 @@ output: html_document
 #devtools::install_github("ropensci/USAboundaries")
 #devtools::install_github("ropensci/USAboundariesData")
 #install.packages("gridExtra")
+#install.packages("colorspace")
 ```
 
 ```{r}
@@ -31,6 +32,7 @@ library("tmap")
 library("USAboundaries")
 library("sf")
 library("gridExtra")
+library("colorspace")
 ```
 
 creating general trend and regression charts 
@@ -391,6 +393,10 @@ ggplot(T_yr, CO2_1avg, aes(x+T_Year, y=CO2_1year))+
   
 ```
  
+```{r}
+pal <- choose_palette()
+pur_grad <-pal(7)
+```
  
 Spatial Distribution of T-Outbreaks in the US
 ```{r}
@@ -400,8 +406,29 @@ stateBorders <- us_states(states = sts)
 BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
 coordinates <- BigDays.sf.dfT[,"Lat","Lon"] 
 
-tm_shape(stateBorders, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m   +no_defs")
-tm_shape(BigDays.sf.dfT)
+tm_shape(stateBorders, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m   +no_defs")+
+  tm_borders(col ="gray", alpha = 1)+
+  tm_compass(text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray")+
+  tm_scale_bar(width = .3, 
+               text.size = 0.8, 
+               lwd = 1.75, 
+               color.dark = "gray")+
+  tm_layout(attr.position = c("left","bottom"), inner.margins = c(.1, .1, .1, .1))+
+tm_shape(BigDays.sf.dfT, is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+
+  tm_bubbles(size = 0.1, 
+             col = pur_grad, 
+             breaks = seq(0, 5, by=1),
+             labels = c("F1", "F2", "F3", "F4", "F5"), 
+             title.col = "Magnitude")+
+ tm_layout("Tornadoes", 
+               legend.title.size = 1.1,
+             legend.position = c("right", "bottom"), 
+             legend.stack = "horizontal",
+             legend.frame = FALSE, 
+             legend.text.size = 1, legend.width = -0.2)
+  
 
 ```
 
