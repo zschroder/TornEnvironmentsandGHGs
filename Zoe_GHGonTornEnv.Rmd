@@ -401,10 +401,20 @@ tmap_arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 
 ## Plot the GHG Emissions from 1994 to 2022:
 
+Step 1: Load in the Greenhouse Gas Data
 ```{r}
 GHG_Emissions <- read.csv("AnnualAverages_GHG.csv")
 ```
 
+The colors for GHG values in all of the following plots are:
+CO2: "red"
+CH4: "green3"
+O3: "purple3"
+AGGI: "yellow3"
+
+Step 2: Plot line graphs of the Emission Data. Emission values on the `y` axis and year on the `x` axis. 
+
+Carbon Dioxide: 
 ```{r}
 CO2_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = CO2_ppm), 
@@ -424,10 +434,11 @@ CO2_plot <- ggplot(GHG_Emissions) +
                      breaks = seq(300, 425, 25)) 
 ```
 
+Methane: 
 ```{r}
 CH4_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = CH4_ppb), 
-            color = "green4",
+            color = "green3",
             linewidth = 1) +
   theme_bw() +
   xlab("Year") +
@@ -443,10 +454,11 @@ CH4_plot <- ggplot(GHG_Emissions) +
                      breaks = seq(1600, 2000, 50)) 
 ```
 
+Ozone:
 ```{r}
 O3_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = O3_DU), 
-            color = "purple",
+            color = "purple3",
             linewidth = 1) +
   theme_bw() +
   xlab("Year") +
@@ -462,10 +474,11 @@ O3_plot <- ggplot(GHG_Emissions) +
                      breaks = seq(80, 240, 20)) 
 ```
 
+Annual Greenhouse Gas Index:
 ```{r}
 AGGI_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = AGGI), 
-            color = "blue",
+            color = "yellow3",
             linewidth = 1) +
   theme_bw() +
   xlab("Year") +
@@ -481,10 +494,14 @@ AGGI_plot <- ggplot(GHG_Emissions) +
                      breaks = seq(0.7, 1.6, 0.1)) 
 ```
 
+Step 3: Make the 2x2 grid panel of the emission values.
 ```{r}
 grid.arrange(CO2_plot, CH4_plot, O3_plot, AGGI_plot, nrow = 2)
 ```
 
+## Plot the 10-year average GHG values with the maximum (minimum for CIN) environmental variables for outbreaks with at least ten tornadoes.
+
+Step 1: Sort the data by year and extract the max/min values for the environmental variables and max values of the 10-year average GHG values. 
 ```{r}
 x <- BigDays.sfdfT %>%
   group_by(Year) %>%
@@ -492,14 +509,17 @@ x <- BigDays.sfdfT %>%
             min_CIN = min(minCIN),
             max_DLBS = max(maxBS_deep),
             max_SLBS = max(maxBS_shallow),
-            CO2 = max(CO2_10year),
-            CH4 = max(CH4_10year),
-            O3 = max(O3_10year),
-            AGGI = max(AGGI_10year))
+            CO2 = max(CO2_10year), #red
+            CH4 = max(CH4_10year),#green
+            O3 = max(O3_10year), #purple
+            AGGI = max(AGGI_10year)) #yellow
 ```
 
+Step 2: Make a figure for each environmental variable (CAPE, CIN, DLBS, SLBS) with a trend line for each GHG variable (CO2, CH4, O3, AGGI).
+
+CAPE and CO2 (10-year):
 ```{r}
-ggplot(x) +
+p1 <- ggplot(x) +
   geom_bar(aes(x = Year, y = max_CAPE),
            stat = "identity", 
            color = "white",
@@ -528,8 +548,9 @@ ggplot(x) +
                                          name = "Carbon Dioxide [ppm]"))
 ```
 
+CAPE and CH4 (10-year)
 ```{r}
-ggplot(x) +
+p2 <- ggplot(x) +
   geom_bar(aes(x = Year, y = max_CAPE),
            stat = "identity", 
            color = "white",
@@ -537,7 +558,7 @@ ggplot(x) +
            linewidth = 1) +
   geom_line(aes(x = Year, y = CH4*6000/1900),
             stat = "identity",
-            color = "red",
+            color = "green3",
             size = 2) +
   theme_bw() +
   xlab("Year") +
@@ -558,8 +579,9 @@ ggplot(x) +
                                          name = "Methane [ppb]"))
 ```
 
+CAPE and Ozone (10-year):
 ```{r}
-ggplot(x) +
+p3 <- ggplot(x) +
   geom_bar(aes(x = Year, y = max_CAPE),
            stat = "identity", 
            color = "white",
@@ -567,7 +589,7 @@ ggplot(x) +
            linewidth = 1) +
   geom_line(aes(x = Year, y = O3*6000/140),
             stat = "identity",
-            color = "red",
+            color = "purple3",
             size = 2) +
   theme_bw() +
   xlab("Year") +
@@ -588,8 +610,9 @@ ggplot(x) +
                                          name = "Ozone [DU]"))
 ```
 
+CAPE and AGGI: 
 ```{r}
-ggplot(x) +
+p4 <- ggplot(x) +
   geom_bar(aes(x = Year, y = max_CAPE),
            stat = "identity", 
            color = "white",
@@ -597,7 +620,7 @@ ggplot(x) +
            linewidth = 1) +
   geom_line(aes(x = Year, y = AGGI*6000/1.5),
             stat = "identity",
-            color = "red",
+            color = "yellow3",
             size = 2) +
   theme_bw() +
   xlab("Year") +
@@ -618,14 +641,19 @@ ggplot(x) +
                                          name = "Annual Greenhouse Gas Index"))
 ```
 
+Step 3: Merge the figures above into a single 2x2 panel figure:
+```{r}
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
 
+## Check for Collinearity between the GHG variables: 
 
-## Model Collinearity: 
+**10 - year Averages**
 
-Correlation Matrix -- 10 year averages: 
+CAPE and 10-year averages: 
 ```{r}
 CAPE_10year <- BigDays.sfdfT %>%
-  select(maxCAPE, 
+  dplyr::select(maxCAPE, 
          CO2_10year,
          CH4_10year, 
          O3_10year,
@@ -634,6 +662,7 @@ CAPE_10year <- st_drop_geometry(CAPE_10year)
 cor(CAPE_10year)
 ```
 
+DLBS and 10-year averages:
 ```{r}
 DLBS_10year <- BigDays.sfdfT %>%
   select(maxBS_deep, 
@@ -645,6 +674,7 @@ DLBS_10year <- st_drop_geometry(DLBS_10year)
 cor(DLBS_10year)
 ```
 
+SLBS and 10-year averages:
 ```{r}
 SLBS_10year <- BigDays.sfdfT %>%
   select(maxBS_shallow, 
@@ -656,7 +686,9 @@ SLBS_10year <- st_drop_geometry(SLBS_10year)
 cor(SLBS_10year)
 ```
 
-Correlation Matrix -- 5 year averages: 
+**5 - year Averages**
+
+CAPE and 5-year averages:
 ```{r}
 CAPE_5year <- BigDays.sfdfT %>%
   select(maxCAPE, 
@@ -668,6 +700,7 @@ CAPE_5year <- st_drop_geometry(CAPE_5year)
 cor(CAPE_5year)
 ```
 
+DLBS and 5-year averages:
 ```{r}
 DLBS_5year <- BigDays.sfdfT %>%
   select(maxBS_deep, 
@@ -679,6 +712,7 @@ DLBS_5year <- st_drop_geometry(DLBS_5year)
 cor(DLBS_5year)
 ```
 
+SLBS and 5-year averages:
 ```{r}
 SLBS_5year <- BigDays.sfdfT %>%
   select(maxBS_shallow, 
@@ -690,7 +724,9 @@ SLBS_5year <- st_drop_geometry(SLBS_5year)
 cor(SLBS_5year)
 ```
 
-Correlation Matrix -- 1 year averages: 
+**1 - year Averages**
+
+CAPE and 1-year averages:
 ```{r}
 CAPE_1year <- BigDays.sfdfT %>%
   select(maxCAPE, 
@@ -702,6 +738,7 @@ CAPE_1year <- st_drop_geometry(CAPE_1year)
 cor(CAPE_1year)
 ```
 
+DLBS and 1-year averages:
 ```{r}
 DLBS_1year <- BigDays.sfdfT %>%
   select(maxBS_deep, 
@@ -713,6 +750,7 @@ DLBS_1year <- st_drop_geometry(DLBS_1year)
 cor(DLBS_1year)
 ```
 
+SLBS and 1-year averages:
 ```{r}
 SLBS_1year <- BigDays.sfdfT %>%
   select(maxBS_shallow, 
