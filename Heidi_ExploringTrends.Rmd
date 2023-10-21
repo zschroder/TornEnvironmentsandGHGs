@@ -22,7 +22,6 @@ output: html_document
 #devtools::install_github("ropensci/USAboundaries")
 #devtools::install_github("ropensci/USAboundariesData")
 #install.packages("gridExtra")
-#install.packages("colorspace")
 ```
 
 ```{r}
@@ -32,7 +31,6 @@ library("tmap")
 library("USAboundaries")
 library("sf")
 library("gridExtra")
-library("colorspace")
 ```
 
 DATA & METHODS
@@ -140,7 +138,7 @@ tm_shape(BigDays.sf.dfT, is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=
   tm_bubbles(size = 0.1, 
              col = "navyblue")
 
-#The only thing I am stuck with here is why the map is shifted to the left and not centered. The West is gettin cut off. 
+#The only thing I am stuck with here is why the map is shifted to the left and not centered. The West is getting cut off. 
 
 ``` 
 
@@ -394,9 +392,22 @@ Needs for all four:
 -Tests for correlation
 -Tests for Significance
 
+
 Line Graph for total outbreaks and all four variables
 Needs:
 -Use data for everything from 1994 to 2022
+```{r}
+#attempting to start this
+BigDays.sfdfT%>%
+  count(Year,CO2_1year)%>%
+  ggplot(mapping=aes(x=Year,y=CO2_1year))+
+    geom_line(aes(x=Year, y=CO2_1year), color="plum3", linewidth=1)+
+    theme_bw()+
+    scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+    scale_y_continuous(expand = c(0, 0), limits=c(345, 415), breaks = seq(350, 415, 10))
+
+```
+
 
 
 
