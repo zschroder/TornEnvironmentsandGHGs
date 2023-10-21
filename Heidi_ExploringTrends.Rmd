@@ -35,15 +35,159 @@ library("gridExtra")
 library("colorspace")
 ```
 
-creating general trend and regression charts 
-```{r}
-AnnGHG <- read.csv("AnnualAverages_GHG.csv")
-dim(AnnGHG)
-str(AnnGHG)
+DATA & METHODS
+Tornado Clusters 
+  Setup Data to produce a clustering with Space-Time Distances
 
+  Needs (numbers for table): 
+  1. Number of Days
+  2. Number of Groups
+  3. Number of Tornadoes
+  4. Number of Casualties
+
+Cluster: >= 10 tornadoes 
+```{r}
+BigDays.sfdfT[,-80]%>%
+  group_by(cDate)%>%
+  filter(nT>=10)
+
+```
+  
+  Create a figure (Map) with multiple clusters on a single day
+  
+  Things that need to be accomplished with said figure
+  - creating clustering
+  - creating a line around the clustering area
+
+Greenhouse Gas Emissions Data
+  Value Selection for each Lag (Table Values)
+  Needs:
+  Average Emissions per year for CO2, CH4, SF6, N2O, and O3
+
+```{r}
+#need to read in the data for the excel file
+AnnGHG <- read.csv("AnnualAverages_GHG.csv")
+
+#validating that data looks correct and is the right dimensions
+# dim(AnnGHG)
+# str(AnnGHG)
+```
+
+*Here is the code to rename a column in R: * Fixing the typo in the excel file zero to O
+```{r}
+colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
+```
+
+Calculating the Average Emissions per Year (for Table)
+```{r}
+#Calculating CO2 annual average
+CO2_Average <- mean(AnnGHG$CO2_ppm)
+print(CO2_Average)
+
+#Calculating CH4 annual average 
+CH4_Average <- mean(AnnGHG$CH4_ppb, na.rm =TRUE)#it would give me NA if I did not use the na.rm function
+print(CH4_Average)
+
+#Calculating SF6 annual Average
+SF6_Average <- mean(AnnGHG$SF6_ppt, na.rm = TRUE)
+print(SF6_Average)
+
+#Calculating N20 annual average
+N2O_Average <- mean(AnnGHG$N2O_ppb, na.rm = TRUE)
+print(N2O_Average)
+
+#Calculating O3 annual Average
+O3_Average <- mean(AnnGHG$O3_DU, na.rm=TRUE)
+print(O3_Average)
 
 ```
 
+RESULTS
+Spatial Distribution of Tornado Outbreaks in Contiguous US 
+  
+Needs:
+- Map of US with compass and scale
+- Plotting Outbreaks (NOT individual Tornadoes)
+
+```{r}
+#Reading in T-Outbreaks Data
+load("TornadoOutbreaks.RData")
+#dim(BigDays.sfdfT)
+```
+NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
+
+```{r}
+#getting State Borders
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
+stateBorders <- us_states(states = sts) 
+
+#creating data frame with the starting Latitude and Longitude of the outbreak
+coordinate <- BigDays.sfdfT["Lat","Lon"]
+BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
+ 
+#creating map with outbreak data
+tm_shape(stateBorders, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m   +no_defs")+
+  tm_borders(col ="gray", alpha = 1)+
+  tm_compass(text.size = 1, 
+             lwd = 2, 
+             color.dark = "gray")+
+  tm_scale_bar(width = .3, 
+               text.size = 0.8, 
+               lwd = 1.75, 
+               color.dark = "gray")+
+  tm_layout(title="Tornado Outbreaks from 1994-2022", title.position=c("center", "top"), attr.position = c("left","bottom"), inner.margins = c(.1, .1, .1, .1))+
+tm_shape(BigDays.sf.dfT, is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+
+  tm_bubbles(size = 0.1, 
+             col = "navyblue")
+
+#The only thing I am stuck with here is why the map is shifted to the left and not centered. The West is gettin cut off. 
+
+``` 
+
+Annual Change in Tornado Outbreaks
+Needs:
+- Year
+- Total count of Outbreak within that year
+
+```{r}
+#creating grouping for number of outbreaks per year
+T_yr<-BigDays.sfdfT[,-80]%>% 
+  group_by(Year)%>%
+  summarize(T_Year = n())
+
+#creating a line graph for T-outbreaks per year (probably won't need this one, but I did both incase we wanted to pick one or the other)
+ggplot(T_yr)+
+  geom_line(aes(x=Year, y=T_Year), color="plum3", linewidth=1)+
+  ggtitle("Total Tornado Outbreaks Per Year")+
+  theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
+  xlab("Year")+
+  ylab("Number of Tornado Outbreaks per Year")+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand = c(0,0),limits=c(20,50),  breaks=seq(20,50,5))
+
+#creating a bar graph with regression line for T-Outbreaks per year
+ggplot(T_yr, aes(x=Year, y=T_Year))+
+  geom_bar(stat="identity",position = "stack",  fill="plum3", width=0.9)+
+  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  ggtitle("Total Outbreaks Per Year")+
+  theme_bw()+
+  theme(plot.title=element_text(hjust=0.5))+
+  xlab("Year")+
+  ylab("Number of Tornado Outbreaks")+
+  scale_x_continuous(expand=c(0,0), limits=c(1994,2022), breaks=c(seq(1994, 2022, 2)))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,50), breaks=c(seq(0,50,5)))
+
+```
+  *slightly positive regression line, therefore outbreaks are on the rise.*
+
+Annual Change in GHG Emissions
+Needs:
+-Year
+-Emission Values for that Year
+-Regression Line showing overall trend
+
+*creating individual annual trend charts for CO2, CH4, O3, AGGI*
 CO2 Annual Trend Analysis Chart
 ```{r}  
 ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
@@ -57,7 +201,8 @@ ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   scale_x_continuous(expand=c(0,0), limits=c(1955,2025), breaks=c(seq(1960,2025,10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,500), breaks=c(seq(0,500,50)))
 ```
-
+  *Positive regression line, values are on the rise*
+  
 CH4 Annual Trend Analysis Chart
 ```{r}  
 ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
@@ -71,40 +216,10 @@ ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   scale_x_continuous(expand=c(0,0), limits=c(1980,2025), breaks=c(seq(1980, 2025, 10)))+
   scale_y_continuous(expand=c(0,0), limits=c(0,2000), breaks=c(seq(0,2000,100)))
 ```
-
-*Here is the code to rename a column in R: * Fixing the typo in the excel file zero to O
-```{r}
-colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
-```
-
-N2O Annual Trend Analysis Chart
-```{r}
-ggplot(AnnGHG, aes(x=year, y=N2O_ppb))+
-  geom_bar(stat="identity",position = "stack",  fill="forestgreen", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
-  ggtitle(bquote("Annual Average of Nitrous Oxide N[2]O"))+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Years Recorded")+
-  ylab("N2O (ppb)")+
-  scale_x_continuous(expand=c(0,0), limits=c(2000,2025), breaks=c(seq(2000, 2025, 4)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
-``` 
-
-SF6 Annual Trend Analysis Chart
-```{r}
-ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
-  geom_bar(stat="identity",position = "stack", fill="purple", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
-  ggtitle(bquote("Annual Average of Sulfur Hexfloride SF"[6]))+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Years Recorded")+
-  ylab("SF6 (ppt)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1995,2025), breaks=c(seq(1995, 2025, 4)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
-```
-
+  *Positive regression line, values are on the rise*
+  
+Got rid ofthe N20 and SF6 charts because their data does not go back to 1994
+  
 O3 Annual Trend Analysis Chart  
 ```{r}
 #DU = Dobson Units
@@ -119,7 +234,8 @@ ggplot(AnnGHG, aes(x=year, y=O3_DU))+
   scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2025, 4)))+
   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
 ```
-
+  *Negative regression line, values are decrease. However, has the most variation throughout the years*
+  
 AGGI Annual Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=AGGI))+
@@ -134,66 +250,37 @@ ggplot(AnnGHG, aes(x=year, y=AGGI))+
   scale_y_continuous(expand=c(0,0), limits=c(0,2), breaks=c(seq(0,2,0.1)))
 
 ```
-Findings given regression lines:
-  -> CO2, CH4, N2O, SF6, AGGI  increases as years go on
-  -> O3 decreases as years go on but has more variation throughout the years. 
-  
-Combined annual averages (trying to create a 4x6 layout of the annual trends from above)
+ *Positive regression line, values are on the rise*
+
+*Combining the Annual Average Charts into a 4x4 grid*
 ```{r}
-CO2_avg <- qplot(year, CO2_ppm, data = AnnGHG)+
-  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
+CO2_avg <- qplot(Year, CO2_1year, data = BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
   theme_bw()+
   ylab("Average of CO2")
-CH4_avg <- qplot(year, CH4_ppb, data = AnnGHG)+
-  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
+CH4_avg <- qplot(Year, CH4_1year, data = BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of CH4")
-N2O_avg <- qplot(year, N2O_ppb, data=AnnGHG)+
-  #stat_smooth(method ="lm", formula = y~x, geom = "smooth", color="goldenrod3", linewidth=1.5)+
-  theme_bw()+
-  ylab("Average of N2O")
-SF6_avg <- qplot(year, SF6_ppt, data=AnnGHG)+
-  #stat_smooth(method = "lm", formula = y~x, geom="smooth", color="forestgreen", linewidth=1.5)+
-  theme_bw()+
-  ylab("Average of SF6")
-O3_avg <-  qplot(year, O3_DU, data = AnnGHG)+
-  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
+O3_avg <-  qplot(Year, O3_1year, data = BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of O3")
-AGGI_avg<- qplot(year, AGGI_1year, data= BigDays.sfdfT)+
-  #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
+AGGI_avg<- qplot(Year, AGGI_1year, data= BigDays.sfdfT)+
+  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
   theme_bw()+
   ylab("Average of AGGI")
 
-grid.arrange(CO2_avg, CH4_avg, N2O_avg, SF6_avg, O3_avg, AGGI_avg,  ncol=3 , nrow=2, top ="Annual Averages of Greenhouse Gases")
-
-
+grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions")
 ```
+  *Slightly confused here because the regression line of O3 is positive when the regression line for the individual one was negative. The 4x4 is using the BigDays Data because I tried using the AnnGHG but it kept giving me a mapping error*
 
-Total annual average of GHG (Finding this for the table within Data and Methods Section B)
-```{r}
-
-CO2_Average <- mean(AnnGHG$CO2_ppm)
-CH4_Average <- mean(AnnGHG$CH4_ppb)
-O3_Average <- mean(AnnGHG$O3_DU)
-AGGI_Average<-mean(AnnGHG$AGGI)
-
-print(CO2_Average)
-print(CH4_Average)
-print(O3_Average)
-print(AGGI_Average)
-
-```
-
+10-year averages (Table)
 *The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
-
-```{r}
-load("TornadoOutbreaks.RData")
-#dim(BigDays.sfdfT)
-```
-NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
-
 **The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
+
+Need to get the the 10 year values for the 90s, 00s, 10s, and 20s for the table
+*I don't think I need the charts below*
 
 Grouping CO2 10 averages
 ```{r}
@@ -203,8 +290,6 @@ Grouping CO2 10 averages
 CO2 <- BigDays.sfdfT[,-80] %>%
   group_by(Year) %>%
   summarize(CO2_10yr = max(CO2_10year))
-
-
 ```
 
 CO2 10-year averages trend
@@ -216,7 +301,7 @@ ggplot(CO2) +
             linewidth = 1)  +
   theme_bw() +
   xlab("Year") +
-  ylab(expression(paste("10-year Average ",CO^2," Emissions [ppm]"))) +
+  ylab("10-year Average CO2 Emissions") +
   theme(axis.text = element_text(size = 12), 
         axis.text.x = element_text(angle = 45, 
                                    vjust = 1.2, 
@@ -293,128 +378,28 @@ ggplot(AGGI)+
   
 ```
 
-4x4 Plot of GHG Avg/year (focused on main four)
-```{r}
-CO2_avg <- qplot(Year, CO2_1year, data = BigDays.sfdfT)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
-  theme_bw()+
-  ylab("Average of CO2")
-CH4_avg <- qplot(Year, CH4_1year, data = BigDays.sfdfT)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="plum3", linewidth=1.5)+
-  theme_bw()+
-  ylab("Average of CH4")
-O3_avg <-  qplot(Year, O3_1year, data = BigDays.sfdfT)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="pink3", linewidth=1.5)+
-  theme_bw()+
-  ylab("Average of O3")
-AGGI_avg<- qplot(Year, AGGI_1year, data= BigDays.sfdfT)+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="seagreen3", linewidth=1.5)+
-  theme_bw()+
-  ylab("Average of AGGI")
+Seasonal Change in Tornado Outbreaks
 
-grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions")
+Spatial Density by Month
+Needs:
+-Filter data for each month
+-Calculate the total number of outbreaks per month
+-create a figure for each month similar to the total outbreaks map
+-Comment on which ones are the most dense and where
+
+Relationship between GHG Emission and Total Number of Outbreaks
+
+Correlation Matrix TABLE between GHG and Total Number of Outbreaks
+Needs for all four: 
+-Tests for correlation
+-Tests for Significance
+
+Line Graph for total outbreaks and all four variables
+Needs:
+-Use data for everything from 1994 to 2022
 
 
-```
 
-4x4 Plot of 10-year Averages(main four)
-```{r}
-grid.arrange(AGGI, O3, CH4, CO2, nrow=2, ncol=2, top="Ten year Averages of Greenhouse Gas Emissions")
-
-```
-
-Cluster: >= 10 tornadoes 
-```{r}
-BigDays.sfdfT[,-80]%>%
-  group_by(cDate)%>%
-  filter(nT>=10)
-
-```
-
-Total Outbreaks per year
-```{r}
-T_yr<-BigDays.sfdfT[,-80]%>%
-  group_by(cDate)%>%
-  group_by(Year)%>%
-  summarize(T_Year = n())
-
-CO2_1avg <-BigDays.sfdfT[,-80]%>%
-  group_by(CO2_1year)
-```
  
-Outbreaks per year trend analysis
-```{r}
-ggplot(T_yr)+
-  geom_line(aes(x=Year, y=T_Year), color="plum3", linewidth=1)+
-  ggtitle("Total Tornado Outbreaks Per Year")+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Year")+
-  ylab("Number of Tornado Outbreaks per Year")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0,0),limits=c(20,50),  breaks=seq(20,50,5))
-
-ggplot(T_yr, aes(x=Year, y=T_Year))+
-  geom_bar(stat="identity",position = "stack",  fill="plum3", width=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  ggtitle("Total Outbreaks Per Year")+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Year")+
-  ylab("Number of Tornado Outbreaks")+
-  scale_x_continuous(expand=c(0,0), limits=c(1994,2022), breaks=c(seq(1994, 2022, 2)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0,50), breaks=c(seq(0,50,5)))
-
-```
- 
-```{r}
-ggplot(T_yr, CO2_1avg, aes(x=T_Year, y=CO2_1year))+
-  geom_point(stat="identity", position = "stack", fill="orchid3")+
-  stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Total Outbreaks per Year")+
-  ylab("CO2 Concenrations (ppm)")
-  
-```
- 
-creating a color palette because the color = "mag" did not want to work
-```{r}
-pal <- choose_palette()
-pur_grad <-pal(7)
-```
- 
-Spatial Distribution of T-Outbreaks in the US
-```{r}
-sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
-stateBorders <- us_states(states = sts)
-
-BigDays.sf.dfT <- st_as_sf(BigDays.sfdfT)
-coordinates <- BigDays.sf.dfT[,"Lat","Lon"] 
-
-tm_shape(stateBorders, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m   +no_defs")+
-  tm_borders(col ="gray", alpha = 1)+
-  tm_compass(text.size = 1, 
-             lwd = 2, 
-             color.dark = "gray")+
-  tm_scale_bar(width = .3, 
-               text.size = 0.8, 
-               lwd = 1.75, 
-               color.dark = "gray")+
-  tm_layout(attr.position = c("left","bottom"), inner.margins = c(.1, .1, .1, .1))+
-tm_shape(BigDays.sf.dfT, is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+
-  tm_bubbles(size = 0.1, 
-             col = pur_grad, 
-             breaks = seq(0, 5, by=1),
-             labels = c("F1", "F2", "F3", "F4", "F5"), 
-             title.col = "Magnitude")+
- tm_layout("Tornadoes", 
-               legend.title.size = 1.1,
-             legend.position = c("right", "bottom"), 
-             legend.stack = "horizontal",
-             legend.frame = FALSE, 
-             legend.text.size = 1, legend.width = -0.2)
-  
-
-```
 
 
