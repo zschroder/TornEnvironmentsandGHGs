@@ -44,7 +44,7 @@ str(AnnGHG)
 
 ```
 
-CO2 Trend Analysis Chart
+CO2 Annual Trend Analysis Chart
 ```{r}  
 ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   geom_bar(stat="identity",position = "stack",  fill="orange", width=0.9)+
@@ -58,7 +58,7 @@ ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
   scale_y_continuous(expand=c(0,0), limits=c(0,500), breaks=c(seq(0,500,50)))
 ```
 
-CH4 Trend Analysis Chart
+CH4 Annual Trend Analysis Chart
 ```{r}  
 ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
   geom_bar(stat="identity",position="stack",  fill="pink", width=0.9)+
@@ -77,7 +77,7 @@ ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
 colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
 ```
 
-N2O Trend Analysis Chart
+N2O Annual Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=N2O_ppb))+
   geom_bar(stat="identity",position = "stack",  fill="forestgreen", width=0.9)+
@@ -91,7 +91,7 @@ ggplot(AnnGHG, aes(x=year, y=N2O_ppb))+
   scale_y_continuous(expand=c(0,0), limits=c(0,400), breaks=c(seq(0,400,25)))
 ``` 
 
-SF6 Trend Analysis Chart
+SF6 Annual Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   geom_bar(stat="identity",position = "stack", fill="purple", width=0.9)+
@@ -105,7 +105,7 @@ ggplot(AnnGHG, aes(x=year, y=SF6_ppt))+
   scale_y_continuous(expand=c(0,0), limits=c(0,15), breaks=c(seq(0,15,1)))
 ```
 
-O3 Trend Analysis Chart  
+O3 Annual Trend Analysis Chart  
 ```{r}
 #DU = Dobson Units
 ggplot(AnnGHG, aes(x=year, y=O3_DU))+
@@ -120,7 +120,7 @@ ggplot(AnnGHG, aes(x=year, y=O3_DU))+
   scale_y_continuous(expand=c(0,0), limits=c(0, 250), breaks=c(seq(0,250, 25)))
 ```
 
-AGGI Trend Analysis Chart
+AGGI Annual Trend Analysis Chart
 ```{r}
 ggplot(AnnGHG, aes(x=year, y=AGGI))+
   geom_bar(stat="identity",position = "stack",  fill="blue", width=0.9)+
@@ -138,7 +138,7 @@ Findings given regression lines:
   -> CO2, CH4, N2O, SF6, AGGI  increases as years go on
   -> O3 decreases as years go on but has more variation throughout the years. 
   
-Combined annual  averages
+Combined annual averages (trying to create a 4x6 layout of the annual trends from above)
 ```{r}
 CO2_avg <- qplot(year, CO2_ppm, data = AnnGHG)+
   #stat_smooth(method = "lm", formula = y~x, geom = "smooth", color="darkturquoise", linewidth=1.5)+
@@ -170,7 +170,7 @@ grid.arrange(CO2_avg, CH4_avg, N2O_avg, SF6_avg, O3_avg, AGGI_avg,  ncol=3 , nro
 
 ```
 
-Total annual average of GHG
+Total annual average of GHG (Finding this for the table within Data and Methods Section B)
 ```{r}
 
 CO2_Average <- mean(AnnGHG$CO2_ppm)
@@ -189,14 +189,7 @@ print(AGGI_Average)
 
 ```{r}
 load("TornadoOutbreaks.RData")
-
-#str(BigDays.sfdfT)
-
-#Example: 
-#BigDays.sfdfT$CH4_10year
-dim(BigDays.sfdfT)
-
-
+#dim(BigDays.sfdfT)
 ```
 NOTE: These are only for the years 1994 to 2022. Moving forward, you will only use CO2, CH4, O3, and AGGI. N2O and SF6 are excluded because the data does not extend back to 1994. 
 
@@ -210,6 +203,7 @@ Grouping CO2 10 averages
 CO2 <- BigDays.sfdfT[,-80] %>%
   group_by(Year) %>%
   summarize(CO2_10yr = max(CO2_10year))
+
 
 ```
 
@@ -393,6 +387,7 @@ ggplot(T_yr, CO2_1avg, aes(x+T_Year, y=CO2_1year))+
   
 ```
  
+
 ```{r}
 pal <- choose_palette()
 pur_grad <-pal(7)
