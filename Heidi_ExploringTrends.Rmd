@@ -391,26 +391,85 @@ Correlation Matrix TABLE between GHG and Total Number of Outbreaks
 Needs for all four: 
 -Tests for correlation
 -Tests for Significance
+```{r}
+#attempting correlation matrix
+Outbreaks <- BigDays.sfdfT%>%
+  dplyr::select(Year,CO2_1year,CH4_1year,O3_1year,AGGI_1year)
+Outbreaks<-st_drop_geometry(Outbreaks)
+cor(Outbreaks)
 
+```
 
 Line Graph for total outbreaks and all four variables
 Needs:
 -Use data for everything from 1994 to 2022
 ```{r}
 #attempting to start this
-BigDays.sfdfT%>%
-  count(Year,CO2_1year)%>%
-  ggplot(mapping=aes(x=Year,y=CO2_1year))+
-    geom_line(aes(x=Year, y=CO2_1year), color="plum3", linewidth=1)+
-    theme_bw()+
-    scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-    scale_y_continuous(expand = c(0, 0), limits=c(345, 415), breaks = seq(350, 415, 10))
+GHG_Out <-BigDays.sfdfT%>%
+  group_by(Year)%>%
+  summarize(Avg1_CO2=mean(CO2_1year),Avg5_CO2=mean(CO2_5year),Avg10_CO2=mean(CO2_10year), T_Year=n())
 
 ```
 
+1 Year Averages CO2 and Outbreak Relationship
+```{r}
+ggplot(GHG_Out)+
+  geom_bar(aes(x=Year, y=(Avg1_CO2)), stat= "identity",fill="lightblue", linewidth=1)+
+  geom_line(aes(x=Year, y=T_Year*8), stat="identity", color="blue", linewidth=1)+
+  stat_smooth(aes(x=Year,y=T_Year*8),method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+   scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
 
+ggplot(GHG_Out)+
+  geom_line(aes(x=Year, y=(Avg1_CO2)), stat= "identity",color="lightblue", linewidth=1)+
+  geom_bar(aes(x=Year, y=T_Year*8), stat="identity", fill="blue", linewidth=1)+
+  stat_smooth(aes(x=Year,y=T_Year*8),method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+   scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
+  
 
+```
+*Both have positive regressions, but T-outbreaks is a lot slower*
 
+5 year averages CO2 and Tornado Outbreaks
+```{r}
+ggplot(GHG_Out)+
+  geom_bar(aes(x=Year, y=(Avg5_CO2)), stat= "identity",fill="lightblue", linewidth=1)+
+  geom_line(aes(x=Year, y=T_Year*8), stat="identity", color="blue", linewidth=1)+
+  stat_smooth(aes(x=Year,y=T_Year*8),method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+   scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
+
+ggplot(GHG_Out)+
+  geom_line(aes(x=Year, y=(Avg5_CO2)), stat= "identity",color="lightblue", linewidth=1)+
+  geom_bar(aes(x=Year, y=T_Year*8), stat="identity", fill="blue", linewidth=1)+
+  stat_smooth(aes(x=Year,y=T_Year*8),method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
+   scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
+
+```
  
+10 year averages CO2 and Tornado Outbreaks
+```{r}
+ggplot(GHG_Out)+
+  geom_bar(aes(x=Year, y=(Avg10_CO2)), stat= "identity",fill="lightblue", linewidth=1)+
+  geom_line(aes(x=Year, y=T_Year*8), stat="identity", color="blue", linewidth=1)+
+  stat_smooth(aes(x=Year,y=T_Year*8),method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
+   scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
+
+ggplot(GHG_Out)+
+  geom_line(aes(x=Year, y=(Avg10_CO2)), stat= "identity",color="lightblue", linewidth=1)+
+  geom_bar(aes(x=Year, y=T_Year*8), stat="identity", fill="blue", linewidth=1)+
+  stat_smooth(aes(x=Year,y=T_Year*8),method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+  theme_bw()+
+  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
+   scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
 
 
+```
