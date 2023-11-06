@@ -491,7 +491,7 @@ test_1yr <- BigDays.sfdfT %>%
             AGGI_1year = max(AGGI_1year)) %>%
   st_drop_geometry()
 
-cor(test_1yr) 
+cor(test_1yr)
 ```
 
 5 year emission correlation to tornado data
