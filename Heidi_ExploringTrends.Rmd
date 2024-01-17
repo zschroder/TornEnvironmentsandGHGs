@@ -164,6 +164,7 @@ Needs:
 T_yr <- BigDays.sfdfT%>% 
   group_by(Year)%>%
   summarize(T_Year = n())
+
 ```
 
 ```{r}
@@ -181,17 +182,19 @@ ggplot(T_yr,aes(x=Year, y=T_Year))+
 ```
 
 ```{r}
-#creating grouping for number of outbreaks per year
+#creating grouping for average number of outbreaks per year
 T_avgyr <- BigDays.sfdfT%>% 
   group_by(Year)%>%
   summarize(Avgyr_T = mean(nT))
+
+
 ```
 
 
 ```{r}
-#creating a bar graph with regression line for T-Outbreaks per year
+#creating a bar graph with regression line for average T-Outbreaks per year
 ggplot(T_avgyr, aes(x=Year, y=Avgyr_T))+
-  geom_line(stat="identity",Color="purple1", linewidth=0.9)+
+  geom_line(stat="identity",color="purple1", linewidth=0.9)+
   stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
   ggtitle("Total Outbreaks Per Year")+
   theme_bw()+
@@ -307,7 +310,7 @@ grid.arrange(AnnCO2, AnnCH4, AnnO3, AnnAGGI, nrow = 2, top=("Emissions Annual Av
    theme_bw()+
    ylab("Average of O3")+
    scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,5))+
-   scale_y_continuous(expand=c(0,0), limits=c(90,150), breaks=seq(90,150, 20))
+   scale_y_continuous(expand=c(0,0), limits=c(90,175), breaks=seq(90,175, 20))
  AGGI_avg<- ggplot(BigDays.sfdfT)+
    geom_line(aes(x = Year, y = AGGI_1year), color = "green4",linewidth = 1)+
    theme_bw()+
