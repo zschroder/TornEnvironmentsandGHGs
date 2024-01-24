@@ -4,7 +4,7 @@ author: "Heidi Erfourth and Zoe Schroder"
 date: "2023-07-25"
 output: html_document
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 “Exploring trends in tornado outbreak environments and greenhouse gas concentrations” 
@@ -220,8 +220,6 @@ Grouping Total Number of Outbreaks per Year
 T_yr <- BigDays.sfdfT%>% 
   group_by(Year)%>%
   summarize(T_Year = n())
-
-T_yr
 ```
 
 Graphing Total Outbreaks per Year
@@ -542,11 +540,8 @@ Needs:
 -Comment on which ones are the most dense and where
 ```{r}
 BigDayCentroids.df%>%
-  group_by(cDate)
-
-filter(BigDayCentroids.df, 
-       cDate <- as.Date >= "1999-04-01", 
-       cDate<-as.Date <= "1999-04-30")
+  group_by(cDate)%>%
+  dplyr::filter(.by="month")
 ```
 
 **Relationship between GHG Emission and Total Number of Outbreaks**
@@ -884,6 +879,10 @@ AGGI_10<-ggplot(GHG_Out)+
                      breaks = seq(0,2,.5), 
                      sec.axis = sec_axis(~.*25, name = "Total Tornado Outbreaks")) 
 ```
+
+**need to make a 4x4 Grid**
+
+
 
 
 ##C02 Trend Analysis with Total Casualties
