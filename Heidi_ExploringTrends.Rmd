@@ -540,8 +540,11 @@ Needs:
 -Comment on which ones are the most dense and where
 ```{r}
 BigDayCentroids.df%>%
-  group_by(cDate)%>%
-  dplyr::filter(.by="month")
+  group_by(Month)%>%
+  summarise(out= n())
+
+
+
 ```
 
 **Relationship between GHG Emission and Total Number of Outbreaks**
@@ -552,8 +555,7 @@ test_1yr <- BigDays.sfdfT %>%
   
   #Filtering Data
   group_by(Year) %>%
-  summarize(T_Year =n(), #Total Number of outbreaks
-            numClus = n(), #Total number of clusters
+  summarize(T_fix this =n(), #Total Number of outbreaks
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
@@ -619,46 +621,32 @@ cor(test_10yr)
 ```{r}
 #Gathering Data
 GHG_Out <-BigDays.sfdfT%>%
-  
+  dplyr::select(Year, CO2_1year, CH4_1year, O3_1year, AGGI_1year, nT, GroupDayCas)%>%
   #Grouping Data
   group_by(Year)%>%
-            
-            #1-Year Averages
-  summarize(Avg1_CO2=mean(CO2_1year),
-            Avg1_CH4=mean(CH4_1year),
-            Avg1_O3=mean(O3_1year),
-            Avg1_AGGI=mean(AGGI_1year),
-            
-            #10-Year Averages
-            Avg10_CO2=mean(CO2_10year),
-            Avg10_CH4=mean(CH4_10year),
-            Avg10_O3=mean(O3_10year),
-            Avg10_AGGI=mean(AGGI_10year),
-            
-            #Tornado Data
-            T_Year=n(),
+  summarise(Numout=n(),
             T_avgyear = mean(nT),
-            T_FO = mean(n0), 
-            T_F1= mean(n1), 
-            T_F2 = mean(n2),T_F3 = mean(n3), 
-            T_F4 = mean(n4), T_F5 = mean(n5),
-            T_Cas = sum(GroupDayCas))
+            T_Cas = sum(GroupDayCas),
+            CO2 = mean(CO2_1year),
+            CH4 = mean(CH4_1year),
+            O3 = mean(O3_1year),
+            AGGI = mean(AGGI_1year))
 ```
 
 #1 Year Averages#
 1 Year Averages CO2 and Outbreak Relationship
 ```{r}
-CO2_1<- ggplot(GHG_Out)+
+CO2_1<-ggplot(GHG_Out)+
   
   #Plotting CO2 1 year Average
   geom_line(aes(x=Year, 
-                y=(Avg1_CO2)), 
+                y=(CO2)), 
             stat= "identity",
             color="dodgerblue3", 
             linewidth=1)+
   
   #Plotting Total # of Outbreak per year
-  geom_bar(aes(x=Year, y=T_Year*8), 
+  geom_bar(aes(x=Year, y=Numout*8), 
             stat="identity", 
             fill="orange3", 
             linewidth=1)+
@@ -762,7 +750,7 @@ AGGI_1<-ggplot(GHG_Out)+
 ```
 
 ```{r}
-#grid.arrange(CO2_1, CH4_1, O3_1, AGGI_1, nrow=2, top ="Annual Average Emissions & Total Outbreaks per Year")
+grid.arrange(CO2_1, CO2_1, CO2_1, CO2_1, nrow=2, top ="Annual Average Emissions & Total Outbreaks per Year")
 ```
 
 #10 Year Averages
