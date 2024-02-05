@@ -1,5 +1,5 @@
 ---
-title: "Heidi_ExploringTrends"
+`title: "Heidi_ExploringTrends"
 author: "Heidi Erfourth and Zoe Schroder"
 date: "2023-07-25"
 output: html_document
@@ -15,17 +15,18 @@ editor_options:
 **Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
 
 ```{r}
-library("dplyr")
-library("ggplot2")
-library("tmap")
-library("USAboundaries")
-library("sf")
-library("gridExtra")
+suppressMessages(library("dplyr"))
+suppressMessages(library("ggplot2"))
+suppressMessages(library("tmap"))
+suppressMessages(library("USAboundaries"))
+suppressMessages(library("sf"))
+suppressMessages(library("gridExtra"))
 ```
 
 DATA & METHODS
 ```{r}
 load("TornadoOutbreaks.RData")
+AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 ```
 
 ##Tornado Data
@@ -38,16 +39,15 @@ load("TornadoOutbreaks.RData")
 ##Create a figure (Map) with multiple clusters on a single day
 Finding a Single Day with Multiple Clusters 
 ```{r}
-BigDays.sfdfT %>% # Cluster Data
-  group_by(cDate) %>% # Group by the convective days to see if there are duplicates.
-  summarize(num_of_clusters = n()) %>% # Count the number of clusters on each cDate.
+MultiClus<-BigDays.sfdfT %>% # Cluster Data
+  group_by(cDate)%>% # Group by the c. days to see if there are duplicates
+  summarize(num_of_clusters = n())%>%  # Count the number of clusters on each cDate.
   arrange(desc(num_of_clusters)) # Arrange the number of clusters column in descending order.
 ```
 
 Data from June 4, 1999 Outbreak
 ```{r}
 #Group Number: 1686, 1688
-
 #Cluster 1 Data
 June4<-BigDays.sfdfT%>%
   dplyr::filter(ID=="199906041686")
@@ -72,8 +72,6 @@ June4_1Torns <- BigDayTornadoes%>%
 June <- rbind(June4, June4_1)#Overall Data 
 Junecent <- rbind(June4cent, June4_1cent)#Centroids
 JuneTorns <- rbind(June4Torns, June4_1Torns)#Tornadoes
-
-
 ```
  
 State Boarders for Contiguous United States 
@@ -86,8 +84,8 @@ stateBorders <- us_states(states = sts)
 ```{r}
 #Creating Map Projection
 tm_shape(stateBorders,
-          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m
-          +no_defs")+
+          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84
+          +datum=WGS84 +units=m+no_defs")+
   
   #Formatting Borders
   tm_borders(col ="gray", 
@@ -144,34 +142,6 @@ tm_shape(Junecent,
   tm_symbols(size = 1.25, 
              col="black", 
              shape=24)
-
-```
-
-
-**Greenhouse Gas Emissions Data**
-```{r}
-AnnGHG <- read.csv("AnnualAverages_GHG.csv")
-```
-
-Fixing the Typo in Excel File Zero to O
-```{r}
-colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
-```
-
-Calculating the Average Emissions per Year (for Table)
-```{r}
-AnnGHG %>%
-  group_by(year) %>%
-  summarize(avgCO2 = mean(CO2_ppm, 
-                          na.rm = TRUE),
-            avgCH4 = mean(CH4_ppb, 
-                          na.rm = TRUE), 
-            avgSF6 = mean(SF6_ppt, 
-                          na.rm=TRUE), 
-            avgN2O =mean(N2O_ppb, 
-                         na.rm=TRUE), 
-            avgO3 =mean(O3_DU,
-                        na.rm=TRUE))
 ```
 
 RESULTS
@@ -201,7 +171,6 @@ tm_shape(stateBorders,
                color.dark = "gray", 
                position = c(0.01,0))+
   
-  
 #Plotting Individual Clusters Using Centroids
 tm_shape(BigDayCentroids.df, 
          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 
@@ -217,16 +186,16 @@ tm_shape(BigDayCentroids.df,
 
 Grouping Total Number of Outbreaks per Year
 ```{r}
-T_yr <- BigDays.sfdfT%>% 
+Totout_yr <- BigDays.sfdfT%>% 
   group_by(Year)%>%
-  summarize(T_Year = n())
+  summarize(Totout_Year = n())
 ```
 
 Graphing Total Outbreaks per Year
 ```{r}
 #Plotting Outbreaks
-ggplot(T_yr,
-       aes(x=Year, y=T_Year))+
+ggplot(Totout_yr,
+       aes(x=Year, y=Totout_Year))+
   
   #Line Graph
   geom_line(stat="identity", 
@@ -244,7 +213,8 @@ ggplot(T_yr,
   ggtitle("Total Tornado Outbreaks Per Year")+
   theme_bw()+
   theme(plot.title=element_text(hjust=0.5), 
-        plot.margin=margin(0.5,0.5,0.5,0.5, "cm"))+
+        plot.margin=margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x=element_text(angle=45, hjust=1))+
   
   #Axes Formatting
   xlab("Year")+
@@ -259,19 +229,18 @@ ggplot(T_yr,
 
 
 ##Annual Averages in GHG Emissions using BigDays_1year data
-
 CO2 Annual Average
 ```{r}
 #Plotting CO2 1 Year Averages 
 CO2_avg <- ggplot(BigDays.sfdfT, 
                   aes(x= Year, y=CO2_1year))+
   
-   #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+   # #Creating a Linear Regression Line
+   # stat_smooth(method = "lm", 
+   #            formula = y~x, 
+   #            geom="smooth", 
+   #            color="black", 
+   #            linewidth=1, se=F)+
   
   #Line Graph
    geom_line(stat="identity", 
@@ -280,12 +249,13 @@ CO2_avg <- ggplot(BigDays.sfdfT,
   
   #Formatting Plot
    theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
   
   #Formatting Axes
-   ylab("CO2 (ppm)")+
+   ylab(expression("CO"[2]* "(ppm)"))+
    scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1993, 2022), 
-                     breaks = seq(1993, 2022, 5)) + 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022,4)) + 
    scale_y_continuous(expand = c(0,0), 
                      limits=c(345, 415), 
                      breaks = seq(350, 415, 10)) 
@@ -297,12 +267,12 @@ CH4 Annual Average
 CH4_avg <- ggplot(BigDays.sfdfT, 
                   aes(x=Year, y = CH4_1year))+
   
-  #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+  # #Creating a Linear Regression Line
+  #  stat_smooth(method = "lm", 
+  #             formula = y~x, 
+  #             geom="smooth", 
+  #             color="black", 
+  #             linewidth=1, se=F)+
   
   #Line Graph
    geom_line(stat="identity",
@@ -311,12 +281,13 @@ CH4_avg <- ggplot(BigDays.sfdfT,
   
   #Formatting Plot
    theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
   
-  #Formatting Aes
-   ylab("CH4 (ppb)")+
+  #Formatting Axes
+   ylab(expression("CH"[4]* "(ppb)"))+
    scale_x_continuous(expand=c(0,0), 
-                      limits=c(1993, 2022), 
-                      breaks=seq(1993,2022,5))+
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
    scale_y_continuous(expand=c(0,0), 
                       limits=c(1720,1880), 
                       breaks=seq(1720,1880, 20))
@@ -328,12 +299,12 @@ O3 Annual Average
 O3_avg<-ggplot(BigDays.sfdfT,
                aes(x=Year, y=O3_1year))+
   
-  #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+  # #Creating a Linear Regression Line
+  #  stat_smooth(method = "lm", 
+  #             formula = y~x, 
+  #             geom="smooth", 
+  #             color="black", 
+  #             linewidth=1, se=F)+
   
   #Line Graph
    geom_line(stat="identity",
@@ -342,12 +313,13 @@ O3_avg<-ggplot(BigDays.sfdfT,
   
   #Formatting Plot
    theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust = 1))+
   
   #Formatting axes
-   ylab("O3 (DU)")+
+   ylab(expression("O"[3]* "(DU)"))+
    scale_x_continuous(expand=c(0,0), 
-                      limits=c(1993, 2022), 
-                      breaks=seq(1993,2022,5))+
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
    scale_y_continuous(expand=c(0,0), 
                       limits=c(90,175), 
                       breaks=seq(90,175, 20))
@@ -360,12 +332,12 @@ AGGI_avg<- ggplot(BigDays.sfdfT,
                   aes(x=Year, y=AGGI_1year))+
   
   #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
-  
+   # stat_smooth(method = "lm", 
+   #            formula = y~x, 
+   #            geom="smooth", 
+   #            color="black", 
+   #            linewidth=1, se=F)+
+   # 
   #Line Graph
    geom_line(stat="identity", 
              color = "green4",
@@ -373,12 +345,14 @@ AGGI_avg<- ggplot(BigDays.sfdfT,
   
   #Formatting plot
    theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
   
   #Formatting Axes
    ylab("AGGI")+
+   xlab("Year")+
    scale_x_continuous(expand=c(0,0), 
-                      limits=c(1993, 2022), 
-                      breaks=seq(1993,2022,5))+
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
    scale_y_continuous(expand=c(0,0), 
                       limits=c(0.5,2),
                       breaks=seq(0.5,2,0.2))
@@ -389,12 +363,6 @@ AGGI_avg<- ggplot(BigDays.sfdfT,
 grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions")
 ```
   
-`The figures that you did previously is for all data prior to 1994. The figures that you did in this code chunk are for 1993 to 2021 (1-year prior avg so 1993 data for 1994 avg, 1994 data for 1995 avg, etc.). This is why there is a difference. For 1-year average values, you only want to look at 1993 to 2022. For 5-year average, you want 1989 to 2021. For 10-year average, you want 1983 to 2021. So, if you remove all years prior to 1993 above, the regression line flips to a positive trend. For this research, you should focus only on the values in the BigDays.sfdfT when comparing it to the tornado data.`
-
-**10-year averages (Table)**
-*The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
-**The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
-
 ##10-Year Averages in GHG Emissions using BigDays_1year data
 
 CO2 10-year Averages
@@ -403,12 +371,13 @@ CO2 10-year Averages
 CO2_10 <-ggplot(BigDays.sfdfT, 
                 aes(x=Year, y=CO2_10year)) +
   
-  #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+  # #Creating a Linear Regression Line
+  #  stat_smooth(method = "lm", 
+  #             formula = y~x, 
+  #             geom="smooth", 
+  #             color="black", 
+  #             linewidth=1,
+  #             se=F)+
   
   #Line Graph
   geom_line(stat="identity", 
@@ -417,13 +386,14 @@ CO2_10 <-ggplot(BigDays.sfdfT,
   
   #Formatting Plot
   theme_bw() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
   
   #Formatting axes
   xlab("Year") +
-  ylab("CO2 (ppm)") +
+  ylab(expression("CO"[2]*"(ppm)"))+
   scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1993, 2022), 
-                     breaks = seq(1993, 2022, 10)) + 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022, 10)) + 
   scale_y_continuous(expand = c(0, 0), 
                      limits=c(345, 415), 
                      breaks = seq(350, 415, 10)) 
@@ -435,12 +405,13 @@ CH4 10 year Averages
 CH4_10<-ggplot(BigDays.sfdfT, 
                aes(x=Year, y=CH4_10year)) +
   
-  #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+  # #Creating a Linear Regression Line
+  #  stat_smooth(method = "lm", 
+  #             formula = y~x, 
+  #             geom="smooth", 
+  #             color="black", 
+  #             linewidth=1,
+  #             se=F)+
   
   #Line Graph
   geom_line(stat="identity",
@@ -449,13 +420,14 @@ CH4_10<-ggplot(BigDays.sfdfT,
   
   #Formatting Plot
   theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
   
   #Formatting Axes
   xlab("Year")+
-  ylab("CH4 (ppb)")+
+  ylab(expression("CH"[4]* "(ppb)"))+
   scale_x_continuous(expand=c(0,0), 
-                     limits=c(1993, 2022), 
-                     breaks=seq(1993,2022,10))+
+                     limits=c(1994, 2022), 
+                     breaks=seq(1994,2022,10))+
   scale_y_continuous(expand=c(0,0), 
                      limits=c(1720,1880), 
                      breaks=seq(1720,1880, 20))
@@ -467,12 +439,13 @@ O3 10-year Averages
 O3_10<-ggplot(BigDays.sfdfT, 
               aes(x=Year, y=O3_10year)) +
   
-  #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+  # #Creating a Linear Regression Line
+  #  stat_smooth(method = "lm", 
+  #             formula = y~x, 
+  #             geom="smooth", 
+  #             color="black", 
+  #             linewidth=1,
+  #             se=F)+
   
   #Line Graph
   geom_line(stat="identity", 
@@ -481,16 +454,17 @@ O3_10<-ggplot(BigDays.sfdfT,
   
   #Formatting Plot
   theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
   
   #Formatting Axes
   xlab("Year")+
-  ylab("O3 (DU)")+
+  ylab(expression("O"[3]*"(DU)"))+
   scale_x_continuous(expand=c(0,0), 
-                     limits=c(1993, 2022),
-                     breaks=seq(1993,2022,10))+
+                     limits=c(1994, 2022),
+                     breaks=seq(1994,2022,10))+
   scale_y_continuous(expand=c(0,0), 
                      limits=c(90,150), 
-                     breaks=seq(90,150, 20))
+                     breaks=seq(90,150, 10))
 ```
 
 AGGI 10-year Averages
@@ -499,12 +473,13 @@ AGGI 10-year Averages
 AGGI_10<-ggplot(BigDays.sfdfT, 
                 aes(x=Year, y=AGGI_10year)) +
   
-  #Creating a Linear Regression Line
-   stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
+  # #Creating a Linear Regression Line
+  #  stat_smooth(method = "lm", 
+  #             formula = y~x, 
+  #             geom="smooth", 
+  #             color="black", 
+  #             linewidth=1,
+  #             se=F)+
   
   #Line Graph
   geom_line(stat="identity", 
@@ -513,13 +488,14 @@ AGGI_10<-ggplot(BigDays.sfdfT,
   
   #Formatting Plot
   theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
   
   #Formatting Axes
   xlab("Year")+
-  ylab("AGGI ")+
+  ylab("AGGI")+
   scale_x_continuous(expand=c(0,0), 
-                     limits=c(1993, 2022), 
-                     breaks=seq(1993,2022,10))+
+                     limits=c(1994, 2022), 
+                     breaks=seq(1994,2022,10))+
   scale_y_continuous(expand=c(0,0), 
                      limits=c(0.5,2),
                      breaks=seq(0.5,2,0.2))
@@ -543,8 +519,6 @@ BigDayCentroids.df%>%
   group_by(Month)%>%
   summarise(out= n())
 
-
-
 ```
 
 **Relationship between GHG Emission and Total Number of Outbreaks**
@@ -555,7 +529,7 @@ test_1yr <- BigDays.sfdfT %>%
   
   #Filtering Data
   group_by(Year) %>%
-  summarize(T_fix this =n(), #Total Number of outbreaks
+  summarize(Totout_yr =n(), #Total Number of outbreaks
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
@@ -569,19 +543,18 @@ test_1yr <- BigDays.sfdfT %>%
             T_F5=sum(n5),
             
             #Maximum Emissions for 1 Year
-            CO2_1year = max(CO2_1year),
-            CH4_1year = max(CH4_1year),
-            O3_1year = max(O3_1year),
-            AGGI_1year = max(AGGI_1year)) %>%
+            CO2_1yr = max(CO2_1year),
+            CH4_1yr = max(CH4_1year),
+            O3_1yr = max(O3_1year),
+            AGGI_1yr = max(AGGI_1year)) %>%
   
   #Removing Geometry Column
   st_drop_geometry()
 
 #Correlation Matrix
-#cor(test_1yr)
+cor(test_1yr)
 
 test_1yr
-
 ```
 
 10 year Correlation Matrix
@@ -590,8 +563,7 @@ test_1yr
 test_10yr <- BigDays.sfdfT %>%
   #Grouping Data
   group_by(Year) %>%
-  summarize(T_Year =n(), #Total Number of outbreaks
-            numClus = n(), #Total number of clusters
+  summarize(Totout_yr =n(), #Total Number of outbreaks
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
@@ -605,10 +577,10 @@ test_10yr <- BigDays.sfdfT %>%
             T_F5=sum(n5),
             
             #Maximum Emissions for 10 years
-            CO2_10year = max(CO2_10year),
-            CH4_10year = max(CH4_10year),
-            O3_10year = max(O3_10year),
-            AGGI_10year = max(AGGI_10year)) %>%
+            CO2_10yr = max(CO2_10year),
+            CH4_10yr = max(CH4_10year),
+            O3_10yr = max(O3_10year),
+            AGGI_10yr = max(AGGI_10year)) %>%
   
   #Removing Geometry Column
   st_drop_geometry()
@@ -624,29 +596,25 @@ GHG_Out <-BigDays.sfdfT%>%
   dplyr::select(Year, CO2_1year, CH4_1year, O3_1year, AGGI_1year, nT, GroupDayCas)%>%
   #Grouping Data
   group_by(Year)%>%
-  summarise(Numout=n(),
+  summarise(Totout_yr=n(),
             T_avgyear = mean(nT),
-            T_Cas = sum(GroupDayCas),
-            CO2 = mean(CO2_1year),
-            CH4 = mean(CH4_1year),
-            O3 = mean(O3_1year),
-            AGGI = mean(AGGI_1year))
+            T_Cas = sum(GroupDayCas))
 ```
 
 #1 Year Averages#
 1 Year Averages CO2 and Outbreak Relationship
 ```{r}
-CO2_1<-ggplot(GHG_Out)+
+ggplot(GHG_Out)+
   
   #Plotting CO2 1 year Average
   geom_line(aes(x=Year, 
-                y=(CO2)), 
+                y=CO2_1year), 
             stat= "identity",
             color="dodgerblue3", 
             linewidth=1)+
   
   #Plotting Total # of Outbreak per year
-  geom_bar(aes(x=Year, y=Numout*8), 
+  geom_bar(aes(x=Year, y=Totout_yr*8), 
             stat="identity", 
             fill="orange3", 
             linewidth=1)+
