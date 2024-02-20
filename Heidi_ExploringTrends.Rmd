@@ -13,6 +13,9 @@ editor_options:
                       https://mc.manuscriptcentral.com/joc 
 
 **Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
+```{r}
+install.packages("RColorBrewer")
+```
 
 ```{r}
 suppressMessages(library("dplyr"))
@@ -29,6 +32,10 @@ load("TornadoOutbreaks.RData")
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 ```
 
+```{r}
+cr <- RColorBrewer::brewer.pal(9, "Reds")
+cr <- cr[-c(1:3)]
+```
 ##Tornado Data
 **  Needs (numbers for table): 
 ** 1. Number of Days
@@ -126,7 +133,7 @@ tm_shape(JuneTorns,
   #Formatting Tornado Bubbles
   tm_bubbles(size = 0.2,
              border.lwd=NA, 
-             palette = "Reds", 
+             palette = cr, 
              col="mag",
              breaks=seq(0,6,by=1),
              labels=c("F0", "F1","F2", "F3", "F4", "F5"),
@@ -518,7 +525,6 @@ Needs:
 BigDayCentroids.df%>%
   group_by(Month)%>%
   summarise(out= n())
-
 ```
 
 **Relationship between GHG Emission and Total Number of Outbreaks**
