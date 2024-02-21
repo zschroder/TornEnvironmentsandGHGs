@@ -13,9 +13,6 @@ editor_options:
                       https://mc.manuscriptcentral.com/joc 
 
 **Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
-```{r}
-install.packages("RColorBrewer")
-```
 
 ```{r}
 suppressMessages(library("dplyr"))
@@ -24,6 +21,7 @@ suppressMessages(library("tmap"))
 suppressMessages(library("USAboundaries"))
 suppressMessages(library("sf"))
 suppressMessages(library("gridExtra"))
+suppressMessages(library("RColorBrewer"))
 ```
 
 DATA & METHODS
@@ -32,19 +30,84 @@ load("TornadoOutbreaks.RData")
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 ```
 
+*State Boarders for Contiguous United States (WILL BE USED SEVERAL TIMES THROUGHOUT PROJECT)*
+```{r}
+sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
+stateBorders <- us_states(states = sts) 
+```
+
+**Map Projections (WILL BE USED SEVERAL TIMES THROUGHOUT PROJECT)**
+```{r}
+merc <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+US_LCC <- "+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs"
+```
+
+#Adjusting Platte Hues
 ```{r}
 cr <- RColorBrewer::brewer.pal(9, "Reds")
 cr <- cr[-c(1:3)]
 ```
-##Tornado Data
-**  Needs (numbers for table): 
-** 1. Number of Days
-** 2. Number of Groups
-** 3. Number of Tornadoes
-** 4. Number of Casualties
 
-##Create a figure (Map) with multiple clusters on a single day
-Finding a Single Day with Multiple Clusters 
+
+########################
+## SPC Tornado Data ##
+########################
+
+**Tornadoes for 2008**
+```{r}
+#Pulling Tornado Data only for 2008
+OK2008<-BigDayCentroids.df%>%
+  dplyr::filter(Year==2008)
+```
+
+**Plotting 2008 Oklahoma Outbreak Data**
+```{r}
+#Creating Map Projection
+tm_shape(stateBorders)+
+  
+  #Formatting Borders
+  tm_borders(col ="gray", 
+             alpha = 1)+
+  
+  #Compass and Scale Bar Formatting
+  tm_compass(text.size = 0.7, 
+             lwd = 2, 
+             color.dark = "gray")+
+  tm_scale_bar(width = 0.27, 
+               text.size = 0.6, 
+               lwd = 1.75,  
+               color.dark = "gray")+
+  
+  #Formatting Plot 
+  tm_layout(legend.position = c(0.01,0),
+            attr.position=c("right","bottom"), 
+            inner.margins = c(0.3,0.2,0.3,0.2), 
+            title="June 4, 1999", 
+            title.position = c(0.40, 0.95))+
+  
+#Plotting Individual Tornadoes
+tm_shape(OK2008,
+         projection = merc)+
+  
+##ERROR in Formatting below: Invalid Symbol Colors
+  
+  #Formatting Tornado Bubbles
+  tm_bubbles(size = 0.2,
+             border.lwd=NA,
+             palette = cr,
+             col="mag",
+             breaks=seq(0,6,by=1),
+             labels=c("F0", "F1","F2", "F3", "F4", "F5"),
+             title.col="Magntiude")
+
+```
+
+########################
+## Mutli. Clus. Day  ##
+########################
+
+**Finding a Single Day with Multiple Clusters **
 ```{r}
 MultiClus<-BigDays.sfdfT %>% # Cluster Data
   group_by(cDate)%>% # Group by the c. days to see if there are duplicates
@@ -52,7 +115,7 @@ MultiClus<-BigDays.sfdfT %>% # Cluster Data
   arrange(desc(num_of_clusters)) # Arrange the number of clusters column in descending order.
 ```
 
-Data from June 4, 1999 Outbreak
+**Data from June 4, 1999 Outbreak**
 ```{r}
 #Group Number: 1686, 1688
 #Cluster 1 Data
@@ -80,19 +143,12 @@ June <- rbind(June4, June4_1)#Overall Data
 Junecent <- rbind(June4cent, June4_1cent)#Centroids
 JuneTorns <- rbind(June4Torns, June4_1Torns)#Tornadoes
 ```
- 
-State Boarders for Contiguous United States 
-```{r}
-sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
-stateBorders <- us_states(states = sts) 
-```
 
 **Plotting June 4, 1999 Outbreak Data (Convective Day: 6 am 27th to 6 am 28th)**
 ```{r}
 #Creating Map Projection
 tm_shape(stateBorders,
-          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84
-          +datum=WGS84 +units=m+no_defs")+
+          projection = merc)+
   
   #Formatting Borders
   tm_borders(col ="gray", 
@@ -117,8 +173,7 @@ tm_shape(stateBorders,
 #Creating Polygons for Clusters
 tm_shape(June, 
          is.master = TRUE, 
-         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 
-         +units=m +no_defs" )+
+         projection = merc)+
   
   #Formatting Polygons
   tm_polygons(alpha = 0, 
@@ -127,8 +182,7 @@ tm_shape(June,
 
 #Plotting Individual Tornadoes
 tm_shape(JuneTorns, 
-         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84
-         +units=m +no_defs" )+
+         projection = merc )+
   
   #Formatting Tornado Bubbles
   tm_bubbles(size = 0.2,
@@ -142,8 +196,7 @@ tm_shape(JuneTorns,
 #Plotting Centroids
 tm_shape(Junecent,
          is.master=TRUE,
-         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84
-         +units=m +no_defs" )+
+         projection = merc)+
   
   #Formatting Centroids
   tm_symbols(size = 1.25, 
@@ -151,14 +204,83 @@ tm_shape(Junecent,
              shape=24)
 ```
 
-RESULTS
+#########################
+## Out. County Density ##
+#########################
+
+**getting county data**
+```{r}
+counties.sf <- us_counties()
+
+#Set the coordinate reference system:
+counties.sf <- st_transform(counties.sf, 
+                            crs = st_crs(BigDays.sfdfT))
+```
+
+**counting amount of times each outbreak crosses/interesects a county in Contiguous United States**
+```{r}
+gI <- st_intersects(BigDays.sfdfT, counties.sf, sparse = FALSE)
+colnames(gI) <- counties.sf$name
+counties.sf$GroupDayCount <- colSums(gI)
+```
+
+**creating map of outbreak density in each U.S.county. Fill by the `GroupDayCount` column.**
+```{r}
+counties.sf <- st_transform(counties.sf, 
+                            crs = st_crs(stateBorders))
+BigDays.sfdfT <- st_transform(BigDays.sfdfT, 
+                            crs = st_crs(stateBorders))
+#Plotting Data
+tm_shape(BigDays.sfdfT) +
+  tm_polygons(alpha = 0, 
+              border.alpha = 0) +
+  
+#Plotting Counties
+tm_shape(counties.sf) +
+   tm_fill("GroupDayCount",
+           title = "Total Outbreaks",
+           palette = "Reds", 
+           breaks = c(0, 20, 40, 60, 80, 100, 120)) +
+  
+  #Formatting County Boarders
+  tm_borders(col = "gray", 
+             alpha = .3) +
+  
+  #Adding Compass and Scale
+  tm_compass(size = 1.5, 
+             position = c(0,0.2)) + 
+  
+  tm_scale_bar(width = 0.3, 
+               text.size = 1, 
+               position = c(0.01,0)) +
+  
+  #Formatting overall figure and adding a legend
+  tm_layout(legend.position = c(0.85, 0.0),
+            attr.position = c("left", "bottom"),
+            legend.frame = FALSE,
+            title = "Tornado Outbreaks by County 1994-2022",
+            title.size = 1.5,
+            title.position = c(0.05,0.95),
+            inner.margins = c(.15, .01, .01, .01),
+            legend.width = -0.3, 
+            legend.height = -0.4, 
+            legend.title.size= 1.5,
+            legend.text.size = 1.25,
+            legend.bg.alpha =1) +
+  
+#plotting state boarders  
+tm_shape(stateBorders, 
+         is.master = TRUE,
+         projection = merc) +
+  
+  tm_borders() 
+```
 
 Plotting Outbreaks for 1994-2022
 ```{r}
 #Creating Map Projection
 tm_shape(stateBorders,
-         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84
-         +units=m +no_defs")+
+         projection = merc)+
   
   #Formatting Plot
   tm_borders(col ="gray", 
@@ -180,14 +302,17 @@ tm_shape(stateBorders,
   
 #Plotting Individual Clusters Using Centroids
 tm_shape(BigDayCentroids.df, 
-         projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 
-         +units=m +no_defs" )+
+         projection = merc )+
+
   
   #Formatting Centroids
   tm_bubbles(size = 0.1,
              border.lwd=NA, 
              col = "orange3")
 ``` 
+
+
+Results
 
 ##Annual Change in Tornado Outbreaks
 
@@ -234,7 +359,56 @@ ggplot(Totout_yr,
                      breaks=seq(20,50,5))
 ```
 
+##Annual Change in Tornado Outbreaks Casualties
 
+```{r}
+BigDays.sfdfT
+```
+
+Grouping Total Number of Outbreaks per Year
+```{r}
+TotCas_yr <- BigDays.sfdfT%>% 
+  group_by(Year)%>%
+  summarize(TotalCas_yr = sum(GroupDayCas))
+```
+
+Graphing Total Outbreak Casualties per Year
+```{r}
+#Plotting Outbreaks
+ggplot(TotCas_yr,
+       aes(x=Year, y=TotalCas_yr))+
+  
+  #Line Graph
+  geom_line(stat="identity", 
+            color="deeppink3", 
+            linewidth=1)+
+  
+  #Creating Linear Regression Line
+  stat_smooth(method = "lm", 
+              formula = y~x, 
+              geom="smooth", 
+              color="black", 
+              linewidth=1)+
+  
+  #Plot Formatting
+  ggtitle("Total Tornado Outbreak Casualties Per Year")+
+  theme_bw()+
+  theme(plot.title=element_text(hjust=0.5), 
+        plot.margin=margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Axes Formatting
+  xlab("Year")+
+  ylab("Number of Tornado Outbreak Casualties per Year")+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022),
+                     breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand = c(0,0),
+                     limits=c(100,6000), 
+                     breaks=seq(100,6000,500))
+```
+
+d
 ##Annual Averages in GHG Emissions using BigDays_1year data
 CO2 Annual Average
 ```{r}
@@ -258,7 +432,7 @@ CO2_avg <- ggplot(BigDays.sfdfT,
    theme_bw()+
    theme(axis.text.x=element_text(angle=45, hjust=1))+
   
-  #Formatting Axes
+  #Foratting Axes
    ylab(expression("CO"[2]* "(ppm)"))+
    scale_x_continuous(expand = c(0, 0), 
                      limits=c(1994, 2022), 
@@ -559,8 +733,6 @@ test_1yr <- BigDays.sfdfT %>%
 
 #Correlation Matrix
 cor(test_1yr)
-
-test_1yr
 ```
 
 10 year Correlation Matrix
@@ -573,20 +745,12 @@ test_10yr <- BigDays.sfdfT %>%
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
-            
-            #Total number of Tornadoes Per Rating
-            T_F0 = sum(n0), 
-            T_F1=sum(n1),  
-            T_F2=sum(n2), 
-            T_F3=sum(n3), 
-            T_F4=sum(n4), 
-            T_F5=sum(n5),
-            
-            #Maximum Emissions for 10 years
-            CO2_10yr = max(CO2_10year),
-            CH4_10yr = max(CH4_10year),
-            O3_10yr = max(O3_10year),
-            AGGI_10yr = max(AGGI_10year)) %>%
+          
+            #Emissions for 10 years
+            CO2_10yr = CO2_10year,
+            CH4_10yr = CH4_10year,
+            O3_10yr = O3_10year,
+            AGGI_10yr = AGGI_10year) %>%
   
   #Removing Geometry Column
   st_drop_geometry()
@@ -594,6 +758,32 @@ test_10yr <- BigDays.sfdfT %>%
 #Correlation Matrix
 cor(test_10yr) 
 ```
+
+**Scatter Plot**
+```{r}
+#need to pull each individual 10 year average for CO2 should be at least 3
+##ERROR Error in if (BigDays.sfdfT$Year[i] == 1994) { : missing value where TRUE/FALSE needed
+for (i in BigDays.sfdfT$Year){
+  if (BigDays.sfdfT$Year[i]==1994){
+    CO2_94 = CO2_10year
+  }
+  else if (BigDays.sfdfT$Year[i] == 2004){
+    CO2_04 = CO2_10year
+  }
+  else if (BigDays.sfdfT$Year[i] == 2014){
+    CO2_14 = CO2_10year
+  }
+}
+#need to pull average outbreak size range (I'm assuming nT is the size)
+
+```
+
+```{r}
+ggplot(test_10yr, aes(x = avgTorn, y=CO2_10yr))+
+  geom_point()
+                    
+```
+
 
 **Line Graph for 1-year & 10-year emissions with Tornado Outbreak Data**
 ```{r}
