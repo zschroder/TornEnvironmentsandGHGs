@@ -22,6 +22,7 @@ suppressMessages(library("USAboundaries"))
 suppressMessages(library("sf"))
 suppressMessages(library("gridExtra"))
 suppressMessages(library("RColorBrewer"))
+suppressMessages(library("corrplot"))
 ```
 
 DATA & METHODS
@@ -57,7 +58,7 @@ cr <- cr[-c(1:3)]
 **Tornadoes for 2008**
 ```{r}
 #Pulling Tornado Data only for 2008
-OK2008<-BigDayCentroids.df%>%
+OK2008<-BigDays.sfdfT%>%
   dplyr::filter(Year==2008)
 ```
 
@@ -90,17 +91,15 @@ tm_shape(stateBorders)+
 tm_shape(OK2008,
          projection = merc)+
   
-##ERROR in Formatting below: Invalid Symbol Colors
-  
   #Formatting Tornado Bubbles
-  tm_bubbles(size = 0.2,
-             border.lwd=NA,
-             palette = cr,
+   tm_bubbles(size = 0.2,
+             border.lwd=NA, 
+             palette = "Reds",
              col="mag",
              breaks=seq(0,6,by=1),
              labels=c("F0", "F1","F2", "F3", "F4", "F5"),
              title.col="Magntiude")
-
+ 
 ```
 
 ########################
@@ -308,7 +307,8 @@ tm_shape(BigDayCentroids.df,
   #Formatting Centroids
   tm_bubbles(size = 0.1,
              border.lwd=NA, 
-             col = "orange3")
+             col= "orange3")
+  
 ``` 
 
 
@@ -702,87 +702,52 @@ BigDayCentroids.df%>%
 ```
 
 **Relationship between GHG Emission and Total Number of Outbreaks**
-1 year Correlation Matrix
+**Correlation Matrix**
 ```{r}
-#Gathering Data
-test_1yr <- BigDays.sfdfT %>%
+AnnualYearCor <- BigDays.sfdfT%>%
+  dplyr::select(nT, GroupDayCas,GroupDayFat,
+                CO2_1year,
+                CH4_1year, 
+                O3_1year,
+                AGGI_1year)
+colnames(AnnualYearCor) = c("Tot.Torn.","Tot.Cas.","Tot.Fat.", "CO2", "CH4", "O3", "AGGI")
+AnnualYearCor <- as.data.frame(AnnualYearCor)
+AnnualYearCor <- AnnualYearCor[1:7]
+cordat <- cor(AnnualYearCor)
+corrplot(cordat, method ="number", type = "lower", tl.col = "black")
+
+corrplot
+```
+
+```{r}
+TenYearCor <- BigDays.sfdfT%>%
+  dplyr::select(nT, GroupDayCas,GroupDayFat,
+                CO2_10year,
+                CH4_10year, 
+                O3_10year,
+                AGGI_10year)
+colnames(TenYearCor) = c("Total Tornades","Total Casualties","Total Fatalities","CO2", "CH4", "O3", "AGGI")
+TenYearCor <- as.data.frame(TenYearCor)
+TenYearCor <- TenYearCor[1:7]
+cordat <- cor(TenYearCor)
+corrplot(cordat, method ="circle",type= "full", tl.col = "black")
+```
+
+**Scatter Plot CO2 and Outbreak Size**
+```{r}
+ggplot(BigDays.sfdfT, aes(x=nT, y=CO2_10year, color = GroupDayCas))+
+  geom_point()+
+  scale_color_gradient(low ="deeppink3", high="orange")+
   
-  #Filtering Data
-  group_by(Year) %>%
-  summarize(Totout_yr =n(), #Total Number of outbreaks
-            avgTorn = mean(nT), #Average number of outbreak tornadoes per year
-            totTorn = sum(nT), #Total number of outbreak tornadoes per year
-            totCas = sum(GroupDayCas), #Total number of casualties by year
-           
-            #Total Number of Tornadoes Per Rating
-            T_F0 = sum(n0), 
-            T_F1=sum(n1),  
-            T_F2=sum(n2), 
-            T_F3=sum(n3), 
-            T_F4=sum(n4), 
-            T_F5=sum(n5),
-            
-            #Maximum Emissions for 1 Year
-            CO2_1yr = max(CO2_1year),
-            CH4_1yr = max(CH4_1year),
-            O3_1yr = max(O3_1year),
-            AGGI_1yr = max(AGGI_1year)) %>%
+  theme_bw()+
   
-  #Removing Geometry Column
-  st_drop_geometry()
-
-#Correlation Matrix
-cor(test_1yr)
-```
-
-10 year Correlation Matrix
-```{r}
-#Gathering Data
-test_10yr <- BigDays.sfdfT %>%
-  #Grouping Data
-  group_by(Year) %>%
-  summarize(Totout_yr =n(), #Total Number of outbreaks
-            avgTorn = mean(nT), #Average number of outbreak tornadoes per year
-            totTorn = sum(nT), #Total number of outbreak tornadoes per year
-            totCas = sum(GroupDayCas), #Total number of casualties by year
-          
-            #Emissions for 10 years
-            CO2_10yr = CO2_10year,
-            CH4_10yr = CH4_10year,
-            O3_10yr = O3_10year,
-            AGGI_10yr = AGGI_10year) %>%
+  ggtitle(expression("Outbreak Size Variation with Decadal Changes in CO"[2]*"(ppm)"))+
   
-  #Removing Geometry Column
-  st_drop_geometry()
-
-#Correlation Matrix
-cor(test_10yr) 
+  #Formatting axes
+  xlab("Outbreak Size (Total Tornadoes Per Outbreak)")+
+  ylab(expression("10 Year CO"[2]*"(ppm) Average"))
 ```
 
-**Scatter Plot**
-```{r}
-#need to pull each individual 10 year average for CO2 should be at least 3
-##ERROR Error in if (BigDays.sfdfT$Year[i] == 1994) { : missing value where TRUE/FALSE needed
-for (i in BigDays.sfdfT$Year){
-  if (BigDays.sfdfT$Year[i]==1994){
-    CO2_94 = CO2_10year
-  }
-  else if (BigDays.sfdfT$Year[i] == 2004){
-    CO2_04 = CO2_10year
-  }
-  else if (BigDays.sfdfT$Year[i] == 2014){
-    CO2_14 = CO2_10year
-  }
-}
-#need to pull average outbreak size range (I'm assuming nT is the size)
-
-```
-
-```{r}
-ggplot(test_10yr, aes(x = avgTorn, y=CO2_10yr))+
-  geom_point()
-                    
-```
 
 
 **Line Graph for 1-year & 10-year emissions with Tornado Outbreak Data**
