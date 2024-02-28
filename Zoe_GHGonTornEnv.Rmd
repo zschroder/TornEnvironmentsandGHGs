@@ -80,7 +80,7 @@ tm_shape(stateBorders) +
   tm_layout(legend.bg.color = "white", 
             legend.text.size = .75, 
             attr.position = c("left", "bottom"), 
-            inner.margins = c(.2, .2, .1, .2)) + # (S, W, N, E)
+            inner.margins = c(.15, .15, .1, .1)) + # (S, W, N, E)
 #Plot the hull of the outbreak
 tm_shape(Dec15,
          projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs") +
@@ -96,12 +96,12 @@ tm_shape(Dec15Torns,
               breaks = seq(0, 5, by=1),
               labels = c("F1", "F2", "F3", "F4", "F5"), 
               title.col = "Magnitude") +
-      tm_layout("December 15, 2021", 
+      tm_layout(title = "December 15, 2021 \n 125 Tornadoes", 
                 legend.title.size = 1.1,
                 legend.position = c("right", "bottom"), 
                 legend.stack = "horizontal",
                 legend.frame = FALSE, 
-                legend.text.size = 1, legend.width = -0.2) +
+                legend.text.size = 1, legend.width = -0.15) +
 # Plot the central location of the outbreaks
 tm_shape(Dec15Centroid, 
          is.master = TRUE, 
@@ -111,13 +111,104 @@ tm_shape(Dec15Centroid,
              shape = 24) 
 ```
 
+```{r}
+cat <- c()
+for(i in 1:dim(BigDays.sfdfT)[1]) {
+  x <- ifelse(BigDays.sfdfT$nT[i] < 30, '10 - 29',
+                          ifelse(BigDays.sfdfT$nT[i] >= 30 && BigDays.sfdfT$nT[i] < 60, '30 - 59', 
+                          ifelse(BigDays.sfdfT$nT[i] >= 60 && BigDays.sfdfT$nT[i] < 90, '60 - 89', 
+                          ifelse(BigDays.sfdfT$nT[i] >= 90, '90+',0))))
+  cat <- c(cat, x)
+}
+
+Categories <-  as.data.frame(cat)
+
+MakeTab <- cbind(BigDays.sfdfT, Categories) 
+x <- MakeTab %>%
+  group_by(cat) %>%
+  summarize(numClus = n(),
+            numCas = sum(GroupDayCas),
+            numTorns = sum(nT))
+x
+```
+
+## Tornado Outbreak Density by County: 
+
+Step 1: Get the counties data. 
+```{r}
+counties.sf <- us_counties()
+
+#Set the coordinate reference system:
+counties.sf <- st_transform(counties.sf, 
+                            crs = st_crs(BigDays.sfdfT))
+```
+
+Step 2: Count how many times each outbreak crosses/Intersects a county in the contiguous United States. 
+```{r}
+gI <- st_intersects(BigDays.sfdfT, counties.sf, sparse = FALSE)
+colnames(gI) <- counties.sf$name
+counties.sf$GroupDayCount <- colSums(gI)
+```
+
+Step 3: Remove Alaska, Hawaii, and Puerto Rico from the `states.sf` data frame.
+```{r}
+states.sf <- stateBorders %>% 
+  filter(!stusps %in% c("AK", "PR", "HI"))
+```
+
+Create a map of the outbreak density in each county in the United States. Fill by the `GroupDayCount` column. 
+```{r}
+counties.sf <- st_transform(counties.sf, 
+                            crs = st_crs(stateBorders))
+BigDays.sfdfT <- st_transform(BigDays.sfdfT, 
+                            crs = st_crs(stateBorders))
+
+merc <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+US_LCC <- "+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs"
+
+tm_shape(BigDays.sfdfT) +
+  tm_polygons(alpha = 0, border.alpha = 0) +
+tm_shape(counties.sf) +
+   tm_fill("GroupDayCount",
+            title = "Total Outbreaks",
+            palette = "Reds", breaks = c(0, 20, 40, 60, 80, 100, 120)) +
+  tm_borders(col = "gray", alpha = .3) +
+  tm_compass(size = 5, position = c("left", "bottom")) + tm_scale_bar(width = 0.4, size = 1.4) +
+  tm_layout(legend.position = c("right", "bottom"),
+                   attr.position = c("left", "bottom"),
+                   legend.frame = FALSE,
+                   #title = "Tornado Outbreaks by County [1994-2022]",
+                   #title.size = 1.3,
+                   #title.position = c("left", "TOP"),
+                   inner.margins = c(.15, .01, .01, .01),
+            legend.width = -0.2, 
+            legend.height = -0.3, 
+            legend.title.size=1.5,
+            legend.text.size = 1.25,
+            legend.bg.color = "white",
+            legend.bg.alpha =1) +
+tm_shape(stateBorders, is.master = TRUE, projection = merc) +
+  tm_borders() 
+```
+** Big day density by county **
+
+Number of times each county was within the convex hull of a big tornado day (more than 10 tornadoes occurring in an'outbreak', 1994-2022).
+
 ## Example NARR: December 15, 2021
+
+```{r}
+BigDays.sfdfT %>%
+  group_by(NARRZtime) %>%
+  summarize(numClus = n(), 
+            numTorns = sum(nT))
+```
+
 
 Step 1: Read in the raster.
 ```{r, eval=FALSE}
 #December 15, 2021
 i = 839
-  rb <- brick(paste0("/Volumes/Work/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i]))#<-- this is for varying NARR times
+  rb <- brick(paste0("E:/NCARNARR/All/", BigDays.sfdfT$slug2[i], "/",BigDays.sfdfT$slug[i])) #<-- this is for varying NARR times
   CAPE <- raster(rb, layer = 375)
   HLCY <- raster(rb, layer = 323)
   CIN <- raster(rb, layer = 376)
@@ -173,9 +264,9 @@ p1 <- tm_shape(CAPE_extent) +
             legend.position = c("right", "bottom"),
             attr.position = c("right", "top"),
             legend.frame = FALSE,
-            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            inner.margins = c(.15, 0.05, .15, .1), #bottom, left, top
             legend.text.size = 1, 
-            legend.width = -0.28, 
+            legend.width = -0.2, 
             legend.title.size=1, 
             legend.bg.color = "white", 
             title.size = 1.4) +
@@ -239,9 +330,9 @@ p2 <- tm_shape(CIN_extent) +
             legend.position = c("right", "bottom"),
             attr.position = c("right", "top"),
             legend.frame = FALSE,
-            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            inner.margins = c(.15, 0.05, .15, .1), #bottom, left, top
             legend.text.size = 1, 
-            legend.width = -0.28, 
+            legend.width = -0.2, 
             legend.title.size=1, 
             legend.bg.color = "white", 
             title.size = 1.4) +
@@ -302,9 +393,9 @@ p3 <- tm_shape(SLBS_extent) +
   #tm_format(title = expression(paste("Deep-Layer Bulk Shear [m ", s^-1, "]")), "World", legend.position = c("right", "bottom"),
             attr.position = c("right", "top"),
             legend.frame = FALSE,
-            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            inner.margins = c(.15, 0.05, .15, .1), #bottom, left, top
             legend.text.size = 1, 
-            legend.width = -0.2, 
+            legend.width = -0.15, 
             legend.title.size=1, 
             legend.bg.color = "white", 
             title.size = 1.4) +
@@ -364,9 +455,9 @@ p4 <- tm_shape(DLBS_extent) +
   #tm_format(title = expression(paste("Deep-Layer Bulk Shear [m ", s^-1, "]")), "World", legend.position = c("right", "bottom"),
             attr.position = c("right", "top"),
             legend.frame = FALSE,
-            inner.margins = c(.1, 0.1, .15, .1), #bottom, left, top
+            inner.margins = c(.15, 0.05, .15, .1), #bottom, left, top
             legend.text.size = 1, 
-            legend.width = -0.2, 
+            legend.width = -0.15, 
             legend.title.size=1, 
             legend.bg.color = "white", 
             title.size = 1.4) +
@@ -419,7 +510,7 @@ Carbon Dioxide:
 CO2_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = CO2_ppm), 
             color = "red",
-            linewidth = 1) +
+            linewidth = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Carbon Dioxide Emissions (ppm)") +
@@ -432,6 +523,8 @@ CO2_plot <- ggplot(GHG_Emissions) +
   scale_y_continuous(expand = c(0, 0), 
                      limits=c(300, 430), 
                      breaks = seq(300, 425, 25)) 
+
+CO2_plot
 ```
 
 Methane: 
@@ -439,7 +532,7 @@ Methane:
 CH4_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = CH4_ppb), 
             color = "green3",
-            linewidth = 1) +
+            linewidth = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Methane Emissions (ppb)") +
@@ -450,8 +543,10 @@ CH4_plot <- ggplot(GHG_Emissions) +
                      limits=c(1960, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(1600, 2000), 
+                     limits=c(1600, 2010), 
                      breaks = seq(1600, 2000, 50)) 
+
+CH4_plot
 ```
 
 Ozone:
@@ -459,7 +554,7 @@ Ozone:
 O3_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = O3_DU), 
             color = "purple3",
-            linewidth = 1) +
+            linewidth = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Ozone Emissions (DU)") +
@@ -470,8 +565,10 @@ O3_plot <- ggplot(GHG_Emissions) +
                      limits=c(1960, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(80, 240), 
+                     limits=c(80, 245), 
                      breaks = seq(80, 240, 20)) 
+
+O3_plot
 ```
 
 Annual Greenhouse Gas Index:
@@ -479,7 +576,7 @@ Annual Greenhouse Gas Index:
 AGGI_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = AGGI), 
             color = "yellow3",
-            linewidth = 1) +
+            linewidth = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Annual Greenhouse Gas Index") +
@@ -490,8 +587,10 @@ AGGI_plot <- ggplot(GHG_Emissions) +
                      limits=c(1960, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(0.6, 1.6), 
+                     limits=c(0.6, 1.63), 
                      breaks = seq(0.7, 1.6, 0.1)) 
+
+AGGI_plot
 ```
 
 Step 3: Make the 2x2 grid panel of the emission values.
@@ -648,116 +747,27 @@ grid.arrange(p1, p2, p3, p4, nrow = 2)
 
 ## Check for Collinearity between the GHG variables: 
 
-**10 - year Averages**
+# Install and activate the package
 
-CAPE and 10-year averages: 
 ```{r}
-CAPE_10year <- BigDays.sfdfT %>%
+#install.packages("corrplot")
+library("corrplot")
+```
+
+```{r}
+ModelData <- BigDays.sfdfT %>%
   dplyr::select(maxCAPE, 
-         CO2_10year,
-         CH4_10year, 
-         O3_10year,
-         AGGI_10year)
-CAPE_10year <- st_drop_geometry(CAPE_10year)
-cor(CAPE_10year)
+                maxBS_deep, 
+                maxBS_shallow, 
+                CO2_10year,
+                CH4_10year, 
+                O3_10year,
+                AGGI_10year)
+
+colnames(ModelData) <- c("CAPE", "DLBS", "SLBS", "CO2", "CH4", "O3", "AGGI", "geometry")
+ModelData <- as.data.frame(ModelData)
+ModelData <- ModelData[1:7]
+cordat <- cor(ModelData)
+corrplot(cordat, method="shade", type = "lower", tl.col="black")
 ```
 
-DLBS and 10-year averages:
-```{r}
-DLBS_10year <- BigDays.sfdfT %>%
-  select(maxBS_deep, 
-         CO2_10year,
-         CH4_10year, 
-         O3_10year,
-         AGGI_10year)
-DLBS_10year <- st_drop_geometry(DLBS_10year)
-cor(DLBS_10year)
-```
-
-SLBS and 10-year averages:
-```{r}
-SLBS_10year <- BigDays.sfdfT %>%
-  select(maxBS_shallow, 
-         CO2_10year,
-         CH4_10year, 
-         O3_10year,
-         AGGI_10year)
-SLBS_10year <- st_drop_geometry(SLBS_10year)
-cor(SLBS_10year)
-```
-
-**5 - year Averages**
-
-CAPE and 5-year averages:
-```{r}
-CAPE_5year <- BigDays.sfdfT %>%
-  select(maxCAPE, 
-         CO2_5year, 
-         CH4_5year, 
-         O3_5year, 
-         AGGI_5year)
-CAPE_5year <- st_drop_geometry(CAPE_5year)
-cor(CAPE_5year)
-```
-
-DLBS and 5-year averages:
-```{r}
-DLBS_5year <- BigDays.sfdfT %>%
-  select(maxBS_deep, 
-         CO2_5year, 
-         CH4_5year, 
-         O3_5year, 
-         AGGI_5year)
-DLBS_5year <- st_drop_geometry(DLBS_5year)
-cor(DLBS_5year)
-```
-
-SLBS and 5-year averages:
-```{r}
-SLBS_5year <- BigDays.sfdfT %>%
-  select(maxBS_shallow, 
-         CO2_5year, 
-         CH4_5year, 
-         O3_5year, 
-         AGGI_5year)
-SLBS_5year <- st_drop_geometry(SLBS_5year)
-cor(SLBS_5year)
-```
-
-**1 - year Averages**
-
-CAPE and 1-year averages:
-```{r}
-CAPE_1year <- BigDays.sfdfT %>%
-  select(maxCAPE, 
-         CO2_1year,
-         CH4_1year, 
-         O3_1year,
-         AGGI_1year)
-CAPE_1year <- st_drop_geometry(CAPE_1year)
-cor(CAPE_1year)
-```
-
-DLBS and 1-year averages:
-```{r}
-DLBS_1year <- BigDays.sfdfT %>%
-  select(maxBS_deep, 
-         CO2_1year, 
-         CH4_1year, 
-         O3_1year, 
-         AGGI_1year)
-DLBS_1year <- st_drop_geometry(DLBS_1year)
-cor(DLBS_1year)
-```
-
-SLBS and 1-year averages:
-```{r}
-SLBS_1year <- BigDays.sfdfT %>%
-  select(maxBS_shallow, 
-         CO2_1year, 
-         CH4_1year, 
-         O3_1year, 
-         AGGI_1year)
-SLBS_1year <- st_drop_geometry(SLBS_1year)
-cor(SLBS_1year)
-```
