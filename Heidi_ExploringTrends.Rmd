@@ -1,8 +1,10 @@
 ---
-title: "Heidi_ExploringTrends"
+`title: "Heidi_ExploringTrends"
 author: "Heidi Erfourth and Zoe Schroder"
 date: "2023-07-25"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 “Exploring trends in tornado outbreak environments and greenhouse gas concentrations” 
@@ -13,996 +15,1391 @@ output: html_document
 **Make sure to follow the Author Resources for publication in the Journal. This includes page formatting, section headers, figure format, table format, figure/table location in manuscript, etc.**
 
 ```{r}
-# Do not need to do these everytime. Once installed on your computer you are finished. 
-#install.packages("dplyr")
-#install.packages("ggplot2")
-#install.packages("tidyverse")
-#install.packages("tmap")
-#install.packages("devtools")
-#devtools::install_github("ropensci/USAboundaries")
-#devtools::install_github("ropensci/USAboundariesData")
-#install.packages("gridExtra")
-```
-
-```{r}
-library("dplyr")
-library("ggplot2")
-library("tmap")
-library("USAboundaries")
-library("sf")
-library("gridExtra")
+suppressMessages(library("dplyr"))
+suppressMessages(library("ggplot2"))
+suppressMessages(library("tmap"))
+suppressMessages(library("USAboundaries"))
+suppressMessages(library("sf"))
+suppressMessages(library("gridExtra"))
+suppressMessages(library("RColorBrewer"))
+suppressMessages(library("corrplot"))
 ```
 
 DATA & METHODS
-Tornado Clusters 
-  Setup Data to produce a clustering with Space-Time Distances
-
-  Needs (numbers for table): 
-  1. Number of Days
-  2. Number of Groups
-  3. Number of Tornadoes
-  4. Number of Casualties
-
 ```{r}
 load("TornadoOutbreaks.RData")
+AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 ```
 
-
-
-##Create a figure (Map) with multiple clusters on a single day
-  
-`If you are wanting to find a day that has more than one cluster, do this: `
+*State Boarders for Contiguous United States (WILL BE USED SEVERAL TIMES THROUGHOUT PROJECT)*
 ```{r}
-BigDays.sfdfT %>% # Cluster Data
-  group_by(cDate) %>% # Group by the convective days to see if there are duplicates.
-  summarize(num_of_clusters = n()) %>% # Count the number of clusters on each cDate.
-  arrange(desc(num_of_clusters)) # Arrange the number of clusters column in descending order.
-#2008-05-24
-#3957groupnumber
-#ID = 20005243957
-```
-
-getting info from may 24, 2008 outbreak
-```{r}
-May24<-BigDays.sfdfT%>%
-  dplyr::filter(ID=="200805243957")
-
-May24cent <-BigDayCentroids.df %>%
-  dplyr::filter(ID=="200805243957")
-
-May24Torns <- BigDayTornadoes%>%
-  dplyr::filter(ID=="200805243957")  
-```
-  
-```{r}
-#getting State Borders for contiguous United States
 sts <- state.name[!state.name %in% c("Alaska", "Hawaii")] #Removes AK and HI from list of states
 stateBorders <- us_states(states = sts) 
-
 ```
 
-plotting  may 24, 2008 outbreak data
+**Map Projections (WILL BE USED SEVERAL TIMES THROUGHOUT PROJECT)**
 ```{r}
-tm_shape(stateBorders)+#is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")+
-  tm_borders(col ="gray", alpha = 1)+
-  tm_compass(text.size = 1, lwd = 2, color.dark = "gray")+
-  tm_scale_bar(width = .3, text.size = 0.8, lwd = 1.75,  color.dark = "gray")+
-  tm_layout(legend.bg.color = "white", legend.text.size = .75, attr.position = c("right","bottom"), inner.margins = c(.1, .1, .1, .1))+
-tm_shape(May24, is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+ 
-  tm_polygons(alpha = 0, border.col = "black", lwd = 1.5)+
-tm_shape(May24Torns,is.master=TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+
-  tm_bubbles(size = 0.1, col="mag", breaks=seq(0,5,by=1),labels=c("F1","F2", "F3", "F4", "F5"), title.col="Magntiude")+
-  tm_layout(title="May 24, 2008", title.position=c("center", "top"))+
-tm_shape(May24cent, is.master=TRUE,projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+
-  tm_symbols(size = 1.25, col="black", shape=24)
+merc <- "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+US_LCC <- "+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs"
 ```
 
+#Adjusting Platte Hues
+```{r}
+cr <- RColorBrewer::brewer.pal(9, "Reds")
+cr <- cr[-c(1:3)]
+cas<- RColorBrewer::brewer.pal(9,"Blues")
+cas<- cas[-c(1:3)]
+```
 
-## Greenhouse Gas Emissions Data
-  Value Selection for each Lag (Table Values)
-  Needs:
-  Average Emissions per year for CO2, CH4, SF6, N2O, and O3
+#################
+## Motivation  ##
+#################
 
 ```{r}
-#need to read in the data for the excel file
-AnnGHG <- read.csv("AnnualAverages_GHG.csv")
-
-#validating that data looks correct and is the right dimensions
-# dim(AnnGHG)
-# str(AnnGHG)
+#Using the GHG and Total Outbreak Chart created later
 ```
 
-*Here is the code to rename a column in R: * Fixing the typo in the excel file zero to O
+########################
+## SPC Tornado Data ##
+########################
+
+**Tornadoes for 2008**
 ```{r}
-colnames(AnnGHG)[colnames(AnnGHG) == "N20_ppb"] = "N2O_ppb"
+#Pulling Tornado Data only for 2008
+OK2008<-All_Tornadoes%>%
+  dplyr::filter(st=="OK")
+
+#filter state borders for only Oklahoma
+OKL<-stateBorders%>%
+  dplyr::filter(state_abbr=="OK")
 ```
 
-Calculating the Average Emissions per Year (for Table)
+**Plotting 2008 Oklahoma Outbreak Data**
 ```{r}
-AnnGHG %>%
-  group_by(year) %>%
-  summarize(avgCO2 = mean(CO2_ppm, na.rm = TRUE),
-            avgCH4 = mean(CH4_ppb, na.rm = TRUE), 
-            avgSF6 = mean(SF6_ppt, na.rm=TRUE), 
-            avgN2O =mean(N2O_ppb, na.rm=TRUE), 
-            avgO3 =mean(O3_DU, na.rm=TRUE))
-```
-
-
-
-## RESULTS
-Spatial Distribution of Tornado Outbreaks in Contiguous US 
+#Creating Map Projection
+tm_shape(OKL)+
   
-Needs:
-- Map of US with compass and scale
-- Plotting Outbreaks (NOT individual Tornadoes)
-```{r}
-#creating map with outbreak data
-tm_shape(stateBorders,is.master = TRUE, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m   +no_defs")+
-  tm_borders(col ="gray", alpha = 1)+
-  tm_compass(text.size = 1, 
+  #Formatting Borders
+  tm_borders(col ="gray", 
+             alpha = 1)+
+  
+  #Compass and Scale Bar Formatting
+  tm_compass(text.size = 0.5, 
              lwd = 2, 
-             color.dark = "gray")+
-  tm_scale_bar(width = .3, 
-               text.size = 0.8, 
-               lwd = 1.75, 
-               color.dark = "gray")+
-  tm_layout(title="Tornado Outbreaks from 1994-2022", title.position=c("center", "top"), attr.position = c("left","bottom"), inner.margins = c(.1, .1, .1, .1))+
-tm_shape(BigDayCentroids.df, projection = "+proj=merc +lon_0=0 +k=1 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" )+
-  tm_bubbles(size = 0.1, 
-             col = "goldenrod3")
+             color.dark = "gray",
+             position = c(0.9,0.1))+
+  tm_scale_bar(width = 0.2, 
+               text.size = 1, 
+               lwd = 2,  
+               color.dark = "gray",
+               position = c(0.68,0.01))+
+  
+  #Formatting Plot 
+  tm_layout(attr.position=c("right","bottom"), 
+            inner.margins = c(0.3,0.2,0.3,0.2), 
+            title="2008 Oklahoma Tornadoes", 
+            title.position = c(0.30, 0.95))+
+  
+#Plotting Individual Tornadoes
+tm_shape(OK2008,
+         projection = merc)+
+  
+  #Formatting Tornado Bubbles
+   tm_bubbles(size = 0.04,
+             border.lwd=NA, 
+             palette = cr,
+             col="mag",
+             breaks=seq(0,6,by=1),
+             labels=c("F0", "F1","F2", "F3", "F4", "F5"),
+             title.col="Magntiude")
+```
 
+########################
+## Mutli. Clus. Day  ##
+########################
 
+**Finding a Single Day with Multiple Clusters **
+```{r}
+MultiClus<-BigDays.sfdfT %>% # Cluster Data
+  group_by(cDate)%>% # Group by the c. days to see if there are duplicates
+  summarize(num_of_clusters = n())%>%  # Count the number of clusters on each cDate.
+  arrange(desc(num_of_clusters)) # Arrange the number of clusters column in descending order.
+```
+
+**Data from June 4, 1999 Outbreak**
+```{r}
+#Group Number: 1686, 1688
+#Cluster 1 Data
+June4<-BigDays.sfdfT%>%
+  dplyr::filter(ID=="199906041686")
+
+June4cent <-BigDayCentroids.df %>%
+  dplyr::filter(ID=="199906041686")
+
+June4Torns <- BigDayTornadoes%>%
+  dplyr::filter(ID=="199906041686")
+
+#Cluster 2 Data
+June4_1<-BigDays.sfdfT%>%
+  dplyr::filter(ID=="199906041688")
+
+June4_1cent <-BigDayCentroids.df %>%
+  dplyr::filter(ID=="199906041688")
+
+June4_1Torns <- BigDayTornadoes%>%
+  dplyr::filter(ID=="199906041688")
+
+#Combining Cluster Data
+June <- rbind(June4, June4_1)#Overall Data 
+Junecent <- rbind(June4cent, June4_1cent)#Centroids
+JuneTorns <- rbind(June4Torns, June4_1Torns)#Tornadoes
+```
+
+**Plotting June 4, 1999 Outbreak Data (Convective Day: 6 am 27th to 6 am 28th)**
+```{r}
+#Creating Map Projection
+tm_shape(stateBorders,
+          projection = merc)+
+  
+  #Formatting Borders
+  tm_borders(col ="gray", 
+             alpha = 1)+
+  
+  #Compass and Scale Bar Formatting
+  tm_compass(text.size = 0.5, 
+             lwd = 2, 
+             color.dark = "gray",
+             position = c(0.9,0.1))+
+  tm_scale_bar(width = 0.2, 
+               text.size = 1, 
+               lwd = 2,  
+               color.dark = "gray",
+               position =c(0.68,0.01))+
+  
+  #Formatting Plot 
+  tm_layout(legend.position = c(0.01,0),
+            legend.text.size = 0.9,
+            legend.title.size = 1.2,
+            attr.position=c("right","bottom"), 
+            inner.margins = c(0.3,0.2,0.3,0.2), 
+            title="June 4, 1999", 
+            title.position = c(0.40, 0.95))+
+  
+#Creating Polygons for Clusters
+tm_shape(June, 
+         is.master = TRUE, 
+         projection = merc)+
+  
+  #Formatting Polygons
+  tm_polygons(alpha = 0, 
+              border.col = "black", 
+              lwd = 1.5)+
+
+#Plotting Individual Tornadoes
+tm_shape(JuneTorns, 
+         projection = merc )+
+  
+  #Formatting Tornado Bubbles
+  tm_bubbles(size = 0.3,
+             border.lwd=NA, 
+             palette = cr, 
+             col="mag",
+             breaks=seq(0,6,by=1),
+             labels=c("F0", "F1","F2", "F3", "F4", "F5"),
+             title.col="Magntiude")+
+  
+  
+#Plotting Centroids
+tm_shape(Junecent,
+         is.master=TRUE,
+         projection = merc)+
+  
+  #Formatting Centroids
+  tm_symbols(size = 1.25, 
+             col="black", 
+             shape=24)
+```
+
+#########################
+## Out. County Density ##
+#########################
+
+**getting county data**
+```{r}
+counties.sf <- us_counties()
+
+#Set the coordinate reference system:
+counties.sf <- st_transform(counties.sf, 
+                            crs = st_crs(BigDays.sfdfT))
+```
+
+**counting amount of times each outbreak crosses/interesects a county in Contiguous United States**
+```{r}
+gI <- st_intersects(BigDays.sfdfT, counties.sf, sparse = FALSE)
+colnames(gI) <- counties.sf$name
+counties.sf$GroupDayCount <- colSums(gI)
+```
+
+**creating map of outbreak density in each U.S.county. Fill by the `GroupDayCount` column.**
+```{r}
+counties.sf <- st_transform(counties.sf, 
+                            crs = st_crs(stateBorders))
+BigDays.sfdfT <- st_transform(BigDays.sfdfT, 
+                            crs = st_crs(stateBorders))
+#Plotting Data
+tm_shape(BigDays.sfdfT) +
+  tm_polygons(alpha = 0, 
+              border.alpha = 0) +
+  
+#Plotting Counties
+tm_shape(counties.sf) +
+   tm_fill("GroupDayCount",
+           title = "Total Outbreaks",
+           palette = "Reds", 
+           breaks = c(0, 20, 40, 60, 80, 100, 120)) +
+  
+  #Formatting County Boarders
+  tm_borders(col = "gray", 
+             alpha = .3) +
+  
+  #Adding Compass and Scale
+  tm_compass(size = 1.5, 
+             position = c(0,0.2)) + 
+  
+  tm_scale_bar(width = 0.3, 
+               text.size = 1, 
+               position = c(0.01,0)) +
+  
+  #Formatting overall figure and adding a legend
+  tm_layout(legend.position = c(0.85, 0.0),
+            attr.position = c("left", "bottom"),
+            legend.frame = FALSE,
+            title = "Tornado Outbreaks by County 1994-2022",
+            title.size = 1.5,
+            title.position = c(0.05,0.95),
+            inner.margins = c(.15, .01, .01, .01),
+            legend.width = -0.3, 
+            legend.height = -0.4, 
+            legend.title.size= 1.5,
+            legend.text.size = 1.25,
+            legend.bg.alpha =1) +
+  
+#plotting state boarders  
+tm_shape(stateBorders, 
+         is.master = TRUE,
+         projection = merc) +
+  
+  tm_borders() 
+```
+
+#########################
+## Total Outbreaks  ##
+#########################
+
+Plotting Outbreaks for 1994-2022
+```{r}
+#Creating Map Projection
+tm_shape(stateBorders,
+         projection = merc)+
+  
+  #Formatting Plot
+  tm_borders(col ="gray", 
+             alpha = 1)+
+  tm_layout(title="Tornado Outbreaks from 1994-2022",
+            title.position = c(0.3, 0.95),
+            inner.margins = c(0.1,0.1,0.1,0.1))+
+  
+  #Formatting Compass & Scale Bar
+  tm_compass(text.size = 0.5, 
+             lwd = 2, 
+             color.dark = "gray",
+             position = c(0.9,0.2))+
+  tm_scale_bar(width = 0.3, 
+               text.size = 5,
+               lwd = 2, 
+               color.dark = "gray", 
+               position = c(0.65,0))+
+  
+#Plotting Individual Clusters Using Centroids
+tm_shape(BigDayCentroids.df, 
+         projection = merc )+
+
+  
+  #Formatting Centroids
+  tm_bubbles(size = 0.1,
+             border.lwd=NA, 
+             col= "GroupDayCas",
+             palette= cas)+
+  tm_layout(legend.position = c(0.01,0),
+            legend.title.size = 0.8,
+            legend.text.size = 0.7)
+  
 ``` 
 
-Annual Change in Tornado Outbreaks
-Needs:
-- Year
-- Total count of Outbreak within that year
+##################
+## GHG GML Data ##
+##################
+
+CO2 Annual Average
 ```{r}
-#creating grouping for number of outbreaks per year
-T_yr <- BigDays.sfdfT%>% 
-  group_by(Year)%>%
-  summarize(T_Year = n())
+#Plotting CO2 1 Year Averages 
+CO2_GML<- ggplot(AnnGHG, 
+                  aes(x= year, y=CO2_ppm))+
+
+  #Line Graph
+   geom_line(stat="identity", 
+             color = "dodgerblue3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Foratting Axes
+   ylab(expression("CO"[2]* "(ppm)"))+
+   scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022,4)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits=c(350, 415), 
+                     breaks = seq(350, 415, 10)) 
 ```
 
+CH4 Annual Average
 ```{r}
-#creating a line graph for T-outbreaks per year 
-ggplot(T_yr,aes(x=Year, y=T_Year))+
-  geom_line(sat="identity", color="goldenrod3", linewidth=1)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
+#Plotting CH4 Data
+CH4_GML<-ggplot(AnnGHG, 
+                  aes(x=year, y = CH4_ppb))+
+ 
+  #Line Graph
+   geom_line(stat="identity",
+             color = "purple3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+   ylab(expression("CH"[4]* "(ppb)"))+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(1740,1880), 
+                      breaks=seq(1720,1880, 20))
+```
+
+O3 Annual Average
+```{r}
+#Plotting O3 Data
+O3_GML<-ggplot(AnnGHG,
+               aes(x=year, y=O3_DU))+
+
+  #Line Graph
+   geom_line(stat="identity",
+             color = "goldenrod3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust = 1))+
+  
+  #Formatting axes
+   ylab(expression("O"[3]* "(DU)"))+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(90,175), 
+                      breaks=seq(90,175, 20))
+```
+
+AGGI Annual Average
+```{r}
+#Plotting AGGI Data
+AGGI_GML<- ggplot(AnnGHG,
+                  aes(x=year, y=AGGI))+
+  
+  #Line Graph
+   geom_line(stat="identity", 
+             color = "green4",
+             linewidth = 1)+
+  
+  #Formatting plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+   ylab("AGGI")+
+   xlab("Year")+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(0.5,2),
+                      breaks=seq(0.5,2,0.2))
+```
+
+4x4 Grid Annual Averages
+```{r}
+grid.arrange(CO2_GML, CH4_GML, O3_GML, AGGI_GML, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions from GML")
+```
+
+
+RESULTS
+
+###########################
+## Annual Change in Out. ##
+###########################
+
+Grouping Total Number of Outbreaks per Year
+```{r}
+Totout_yr <- BigDays.sfdfT%>% 
+  group_by(Year)%>%
+  summarize(Totout_Year = n())
+```
+
+Graphing Total Outbreaks per Year
+```{r}
+#Plotting Outbreaks
+ggplot(Totout_yr,
+       aes(x=Year, y=Totout_Year))+
+  
+  #Line Graph
+  geom_line(stat="identity", 
+            color="orange3", 
+            linewidth=1)+
+  
+  #Creating Linear Regression Line
+  stat_smooth(method = "lm", 
+              formula = y~x, 
+              geom="smooth", 
+              color="black", 
+              linewidth=1)+
+  
+  #Plot Formatting
   ggtitle("Total Tornado Outbreaks Per Year")+
   theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
+  theme(plot.title=element_text(hjust=0.5), 
+        plot.margin=margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Axes Formatting
   xlab("Year")+
   ylab("Number of Tornado Outbreaks per Year")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0,0),limits=c(20,50),  breaks=seq(20,50,5))
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022),
+                     breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand = c(0,0),
+                     limits=c(20,50), 
+                     breaks=seq(20,50,5))
 ```
 
+###############################
+## Annual Change in Out. Cas.##
+###############################
+
+Grouping Total Number of Outbreaks per Year
 ```{r}
-#creating grouping for number of outbreaks per year
-T_avgyr <- BigDays.sfdfT%>% 
+TotCas_yr <- BigDays.sfdfT%>% 
   group_by(Year)%>%
-  summarize(Avgyr_T = mean(nT))
+  summarize(TotalCas_yr = sum(GroupDayCas))
 ```
 
-
+Graphing Total Outbreak Casualties per Year
 ```{r}
-#creating a bar graph with regression line for T-Outbreaks per year
-ggplot(T_avgyr, aes(x=Year, y=Avgyr_T))+
-  geom_line(stat="identity",Color="purple1", linewidth=0.9)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  ggtitle("Total Outbreaks Per Year")+
+#Plotting Outbreaks
+ggplot(TotCas_yr,
+       aes(x=Year, y=TotalCas_yr))+
+  
+  #Line Graph
+  geom_line(stat="identity", 
+            color="deeppink3", 
+            linewidth=1)+
+  
+  #Creating Linear Regression Line
+  stat_smooth(method = "lm", 
+              formula = y~x, 
+              geom="smooth", 
+              color="black", 
+              linewidth=1)+
+  
+  #Plot Formatting
+  ggtitle("Total Tornado Outbreak Casualties Per Year")+
   theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
+  theme(plot.title=element_text(hjust=0.5), 
+        plot.margin=margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Axes Formatting
   xlab("Year")+
-  ylab("Number of Tornado Outbreaks")+
-  scale_x_continuous(expand=c(0,0), limits=c(1994,2022), breaks=c(seq(1994, 2022, 2)))+
-  scale_y_continuous(expand=c(0,0), limits=c(10,40), breaks=seq(10,40,5))
-
+  ylab("Number of Tornado Outbreak Casualties per Year")+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022),
+                     breaks=seq(1994,2022,2))+
+  scale_y_continuous(expand = c(0,0),
+                     limits=c(100,6000), 
+                     breaks=seq(100,6000,500))
 ```
-*slightly positive regression line, therefore outbreaks are on the rise.*
 
+###########################
+## Annual Change in GHG ##
+###########################
 
-Annual Change in GHG Emissions
-Needs:
--Year
--Emission Values for that Year
--Regression Line showing overall trend
-
-*creating individual annual trend charts for CO2, CH4, O3, AGGI*
-
-CO2 Annual Trend Analysis Chart
-```{r}  
-AnnCO2 <- ggplot(AnnGHG, aes(x=year, y=CO2_ppm))+
-  geom_line(stat="identity", color="dodgerblue3", linewidth=1)+
-  #ggtitle(bquote("Annual Average of Carbon Dioxide CO"[2]))+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Years Recorded")+
-  ylab("CO2 (ppm)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1955,2025), breaks=c(seq(1960,2025,10)))+
-  scale_y_continuous(expand=c(0,0), limits=c(300,450), breaks=c(seq(300,450,30)))
-```
-  *Positive regression line, values are on the rise*
-  
-CH4 Annual Trend Analysis Chart
-```{r}  
-AnnCH4<-ggplot(AnnGHG, aes(x=year, y=CH4_ppb))+
-  geom_line(stat="identity",color="firebrick3", linewidth=1)+
- # ggtitle(bquote("Annual Average of Methane CH"[4]))+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Years Recorded")+
-  ylab(bquote("CH4 (ppb)"))+
-  scale_x_continuous(expand=c(0,0), limits=c(1980,2025), breaks=c(seq(1980, 2025, 10)))+
-  scale_y_continuous(expand=c(0,0), limits=c(1600,2000), breaks=c(seq(1600,2000,100)))
-```
-  *Positive regression line, values are on the rise*
-  
-O3 Annual Trend Analysis Chart  
+CO2 Annual Average
 ```{r}
-#DU = Dobson Units
-ggplot(AnnGHG, aes(x=year, y=O3_DU))+
-  geom_line(stat="identity",color="darkorange2", linewidth=1)+
-  stat_smooth(method = "lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-  #ggtitle(bquote("Annual Average of Ozone O"[3]))+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Years Recorded")+
-  ylab("03 (DU)")+
-  scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2020, 10)))+
-  scale_y_continuous(expand=c(0,0), limits=c(50, 250), breaks=c(seq(50,250, 50)))
-```
-  *Negative regression line, values are decrease. However, has the most variation throughout the years*
+#Plotting CO2 1 Year Averages 
+CO2_avg <- ggplot(BigDays.sfdfT, 
+                  aes(x= Year, y=CO2_1year))+
+
+  #Line Graph
+   geom_line(stat="identity", 
+             color = "dodgerblue3",
+             linewidth = 1)+
   
-AGGI Annual Trend Analysis Chart
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Foratting Axes
+   ylab(expression("CO"[2]* "(ppm)"))+
+   scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022,4)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits=c(345, 415), 
+                     breaks = seq(350, 415, 10)) 
+```
+
+CH4 Annual Average
 ```{r}
-AnnAGGI<-ggplot(AnnGHG, aes(x=year, y=AGGI))+
-  geom_line(stat="identity",color="green4", linewidth=1)+
-  #ggtitle("Annual Average for Annual Greenhouse Gas Index (AGGI)")+
+#Plotting CH4 Data
+CH4_avg <- ggplot(BigDays.sfdfT, 
+                  aes(x=Year, y = CH4_1year))+
+ 
+  #Line Graph
+   geom_line(stat="identity",
+             color = "purple3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+   ylab(expression("CH"[4]* "(ppb)"))+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(1720,1880), 
+                      breaks=seq(1720,1880, 20))
+```
+
+O3 Annual Average
+```{r}
+#Plotting O3 Data
+O3_avg<-ggplot(BigDays.sfdfT,
+               aes(x=Year, y=O3_1year))+
+
+  #Line Graph
+   geom_line(stat="identity",
+             color = "goldenrod3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust = 1))+
+  
+  #Formatting axes
+   ylab(expression("O"[3]* "(DU)"))+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(90,175), 
+                      breaks=seq(90,175, 20))
+```
+
+AGGI Annual Average
+```{r}
+#Plotting AGGI Data
+AGGI_avg<- ggplot(BigDays.sfdfT,
+                  aes(x=Year, y=AGGI_1year))+
+  
+  #Line Graph
+   geom_line(stat="identity", 
+             color = "green4",
+             linewidth = 1)+
+  
+  #Formatting plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+   ylab("AGGI")+
+   xlab("Year")+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(0.5,2),
+                      breaks=seq(0.5,2,0.2))
+```
+
+4x4 Grid Annual Averages
+```{r}
+grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions")
+```
+  
+############################
+## 10-Year  Change in GHG ##
+############################
+
+CO2 10-year Averages
+```{r}
+#Plotting CO2 Data
+CO2_10 <-ggplot(BigDays.sfdfT, 
+                aes(x=Year, y=CO2_10year)) +
+
+  #Line Graph
+  geom_line(stat="identity", 
+            color = "dodgerblue3",
+            linewidth = 1)+
+  
+  #Formatting Plot
+  theme_bw() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting axes
+  xlab("Year") +
+  ylab(expression("CO"[2]*"(ppm)"))+
+  scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022, 10)) + 
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(345, 415), 
+                     breaks = seq(350, 415, 10)) 
+```
+
+CH4 10 year Averages
+```{r}
+#Plotting CH4 Data
+CH4_10<-ggplot(BigDays.sfdfT, 
+               aes(x=Year, y=CH4_10year)) +
+ 
+  #Line Graph
+  geom_line(stat="identity",
+            color="purple3",
+            linewidth=1 )+
+  
+  #Formatting Plot
   theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Years Recorded")+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  xlab("Year")+
+  ylab(expression("CH"[4]* "(ppb)"))+
+  scale_x_continuous(expand=c(0,0), 
+                     limits=c(1994, 2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand=c(0,0), 
+                     limits=c(1720,1880), 
+                     breaks=seq(1720,1880, 20))
+```
+
+O3 10-year Averages
+```{r}
+#Plotting O3 Data
+O3_10<-ggplot(BigDays.sfdfT, 
+              aes(x=Year, y=O3_10year)) +
+  
+  #Line Graph
+  geom_line(stat="identity", 
+            color="goldenrod3",
+            linewidth=1 )+
+  
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  xlab("Year")+
+  ylab(expression("O"[3]*"(DU)"))+
+  scale_x_continuous(expand=c(0,0), 
+                     limits=c(1994, 2022),
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand=c(0,0), 
+                     limits=c(90,150), 
+                     breaks=seq(90,150, 10))
+```
+
+AGGI 10-year Averages
+```{r}
+#Plotting AGGI Data
+AGGI_10<-ggplot(BigDays.sfdfT, 
+                aes(x=Year, y=AGGI_10year)) +
+  
+  #Line Graph
+  geom_line(stat="identity", 
+            color="green4",
+            linewidth=1 )+
+  
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  xlab("Year")+
   ylab("AGGI")+
-  scale_x_continuous(expand=c(0,0), limits=c(1975,2025), breaks=c(seq(1975, 2020, 10)))+
-  scale_y_continuous(expand=c(0,0), limits=c(0.5,2), breaks=c(seq(0.5,2,0.3)))
-
+  scale_x_continuous(expand=c(0,0), 
+                     limits=c(1994, 2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand=c(0,0), 
+                     limits=c(0.5,2),
+                     breaks=seq(0.5,2,0.2))
 ```
- *Positive regression line, values are on the rise*
 
-combining annual avearges into a 4x4 grid using .csv data
 ```{r}
-grid.arrange(AnnCO2, AnnCH4, AnnO3, AnnAGGI, nrow = 2, top=("Emissions Annual Averages"))
+grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2, top ="10-Year Averages of Greenhouse Gas Emissions")
 ```
- `This plot is fine for showing the trends with regards to all data that is available. No value when comparing to the Tornado Outbreaks.`
 
-*Combining the Annual Average Charts into a 4x4 grid*
+############################
+## Cor. Matrix GHG & Out. ##
+############################
 
-`make these plots as line graphs using ggplot like you did above. Keep the colors consistent for the GHG variables. Make regression line black.`
-**Annual GHG Averages using BigDays _1year data**
+**Annual Correlation Matrix**
 ```{r}
- CO2_avg <- ggplot(BigDays.sfdfT)+
-   geom_line(aes(x = Year, y = CO2_1year),color = "dodgerblue3",linewidth = 1)+
+AnnualYearCor <- BigDays.sfdfT%>%
+
+  #Selecting Variables
+  dplyr::select(nT, GroupDayCas,GroupDayFat,
+                CO2_1year,
+                CH4_1year, 
+                O3_1year,
+                AGGI_1year)
+
+#Formatting Column names
+colnames(AnnualYearCor) = c("Tot.Torn.","Tot.Cas.","Tot.Fat.", "CO2", "CH4", "O3", "AGGI")
+
+#creating data frame 
+AnnualYearCor <- as.data.frame(AnnualYearCor)
+AnnualYearCor <- AnnualYearCor[1:7]
+
+#running correlation test on variables
+cordat <- cor(AnnualYearCor)
+
+#formatting matrix
+corrplot(cordat, method ="number", type = "lower", tl.col = "black")
+```
+
+**10-Year Correlation Matrix**
+```{r}
+TenYearCor <- BigDays.sfdfT%>%
   
-   theme_bw()+
-   ylab("Average of CO2")+
-  scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1993, 2022), 
-                     breaks = seq(1993, 2022, 5)) + 
-  scale_y_continuous(expand = c(0, 0), 
-                     limits=c(345, 415), 
-                     breaks = seq(350, 415, 10)) 
- CH4_avg <- ggplot(BigDays.sfdfT)+
-   geom_line(aes(x = Year, y = CH4_1year), color = "firebrick3",linewidth = 1)+
-   theme_bw()+
-   ylab("Average of CH4")+
-   scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,5))+
-   scale_y_continuous(expand=c(0,0), limits=c(1720,1880), breaks=seq(1720,1880, 20))
-#the 03 graph is having issues 
- O3_avg<-ggplot(BigDays.sfdfT,aes(x=Year, y=O3_1year))+
-   geom_line(stat="identity",color = "darkorange3",linewidth = 1)+
-   stat_smooth(method ="lm", formula = y~x, geom="smooth", color="black", linewidth=1.5)+
-   theme_bw()+
-   ylab("Average of O3")+
-   scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,5))+
-   scale_y_continuous(expand=c(0,0), limits=c(90,150), breaks=seq(90,150, 20))
- AGGI_avg<- ggplot(BigDays.sfdfT)+
-   geom_line(aes(x = Year, y = AGGI_1year), color = "green4",linewidth = 1)+
-   theme_bw()+
-   ylab("Average of AGGI")+
-   scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,5))+
-   scale_y_continuous(expand=c(0,0), limits=c(0.5,2), breaks=seq(0.5,2,0.2))
+  #selecting variables
+  dplyr::select(nT, GroupDayCas,GroupDayFat,
+                CO2_10year,
+                CH4_10year, 
+                O3_10year,
+                AGGI_10year)
 
- grid.arrange(CO2_avg, CH4_avg, O3_avg, AGGI_avg, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions")
+#creating column names
+colnames(TenYearCor) = c("Total Tornades","Total Casualties","Total Fatalities","CO2", "CH4", "O3", "AGGI")
+
+#creating data frame
+TenYearCor <- as.data.frame(TenYearCor)
+TenYearCor <- TenYearCor[1:7]
+
+#running correlation test
+cordat <- cor(TenYearCor)
+
+#formatting matrix
+corrplot(cordat, method ="circle",type= "full", tl.col = "black")
 ```
-  *Slightly confused here because the regression line of O3 is positive when the regression line for the individual one was negative. The 4x4 is using the BigDays Data because I tried using the AnnGHG but it kept giving me a mapping error*
+
+############################
+##Scatter CO2 & Out. Size ##
+############################
+
+```{r}
+ggplot(BigDays.sfdfT, aes(x=nT, y=CO2_10year, color = GroupDayCas))+
   
-`The figures that you did previously is for all data prior to 1994. The figures that you did in this code chunk are for 1993 to 2021 (1-year prior avg so 1993 data for 1994 avg, 1994 data for 1995 avg, etc.). This is why there is a difference. For 1-year average values, you only want to look at 1993 to 2022. For 5-year average, you want 1989 to 2021. For 10-year average, you want 1983 to 2021. So, if you remove all years prior to 1993 above, the regression line flips to a positive trend. For this research, you should focus only on the values in the BigDays.sfdfT when comparing it to the tornado data.`
-
-
-***Five year Trend Analysis***
-CO2 5-year averages trend
-```{r}
-CO2_5 <-ggplot(BigDays.sfdfT) + 
-  geom_line(aes(x = Year, y = CO2_5year), 
-            color = "dodgerblue3",
-            linewidth = 1)  +
-  theme_bw() +
-  xlab("Year") +
-  ylab("CO2 Emissions [ppm]") +
-  theme(axis.text = element_text(size = 12), 
-        axis.text.x = element_text(angle = 45, 
-                                   vjust = 1.2, 
-                                   hjust = 1.2),
-        axis.title = element_text(size = 14), 
-        legend.text = element_text(size = 14),
-        ) +
-  scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1989, 2022), 
-                     breaks = seq(1989, 2022, 5)) + 
-  scale_y_continuous(expand = c(0, 0), 
-                     limits=c(345, 415), 
-                     breaks = seq(350, 415, 10)) 
-```
-
-CH4 5 year averages trend
-```{r}
-CH4_5<-ggplot(BigDays.sfdfT) +
-  geom_line(aes(x=Year, y= CH4_5year), color="firebrick3",linewidth=1 )+
-  theme_bw()+
-  xlab("Year")+
-  ylab("CH4 Emissions [ppb]")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989, 2022), breaks=seq(1989,2022,5))+
-  scale_y_continuous(expand=c(0,0), limits=c(1720,1880), breaks=seq(1720,1880, 20))
-
-```
-
-O3 5-year averages trend
-```{r}
-O3_5<-ggplot(BigDays.sfdfT) +
-  geom_line(aes(x=Year, y= O3_5year), color="darkorange3",linewidth=1 )+
-  theme_bw()+
-  xlab("Year")+
-  ylab("O3 Emissions [DU]")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989, 2022), breaks=seq(1989,2022,5))+
-  scale_y_continuous(expand=c(0,0), limits=c(90,150), breaks=seq(90,150, 20))
+  #creating scatter
+  geom_point()+
   
-```
-
-AGGI 5-year
-```{r}
-AGGI_5<-ggplot(BigDays.sfdfT) +
-  geom_line(aes(x=Year, y= AGGI_5year), color="green4",linewidth=1 )+
+  #formatting plot
+  scale_color_gradient(low ="deeppink3", high="orange")+
   theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Year")+
-  ylab("AGGI ")+
-  scale_x_continuous(expand=c(0,0), limits=c(1989, 2022), breaks=seq(1989,2022,5))+
-  scale_y_continuous(expand=c(0,0), limits=c(0.5,2), breaks=seq(0.5,2,0.2))
+    ggtitle(expression("Outbreak Size Variation with Decadal Changes in CO"[2]*"(ppm)"))+
   
+  #Formatting axes
+  xlab("Outbreak Size (Total Tornadoes Per Outbreak)")+
+  ylab(expression("10 Year CO"[2]*"(ppm) Average"))
 ```
 
+#############################
+##Annual Graphs Out. & GHG ##
+#############################
+
+**Gathering Data**
 ```{r}
-grid.arrange(CO2_5, CH4_5, O3_5, AGGI_5, nrow=2)
-```
+GHG<-BigDays.sfdfT%>%
+  dplyr::select(Year, CO2_1year, CH4_1year, O3_1year, AGGI_1year, 
+                CO2_10year,CH4_10year, O3_10year, AGGI_10year)
 
-
-**10-year averages (Table)**
-*The 10 year averages are already calculated for you. They are in the BigDays.sfdfT file found in the TornadoOutbreaks.RData*
-**The avg for 1994 is 1984 - 1994 not inclusive. Meaning it includes the data for years January 1984 through December 1993.**
-
-CO2 10-year averages trend
-```{r}
-CO2_10 <-ggplot(BigDays.sfdfT) + 
-  geom_line(aes(x = Year, y = CO2_10year), 
-            color = "dodgerblue3",
-            linewidth = 1)  +
-  theme_bw() +
-  xlab("Year") +
-  ylab("CO2 Emissions [ppm]") +
-  theme(axis.text = element_text(size = 12), 
-        axis.text.x = element_text(angle = 45, 
-                                   vjust = 1.2, 
-                                   hjust = 1.2),
-        axis.title = element_text(size = 14), 
-        legend.text = element_text(size = 14),
-        ) +
-  scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1993, 2022), 
-                     breaks = seq(1993, 2022, 10)) + 
-  scale_y_continuous(expand = c(0, 0), 
-                     limits=c(345, 415), 
-                     breaks = seq(350, 415, 10)) 
-```
-
-CH4 10 year averages trend
-```{r}
-CH4_10<-ggplot(BigDays.sfdfT) +
-  geom_line(aes(x=Year, y= CH4_10year), color="firebrick3",linewidth=1 )+
-  theme_bw()+
-  xlab("Year")+
-  ylab("CH4 Emissions [ppb]")+
-  scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,10))+
-  scale_y_continuous(expand=c(0,0), limits=c(1720,1880), breaks=seq(1720,1880, 20))
-
-```
-
-O3 10-year averages trend
-```{r}
-O3_10<-ggplot(BigDays.sfdfT) +
-  geom_line(aes(x=Year, y= O3_10year), color="darkorange3",linewidth=1 )+
-  stat_smooth(aes(x=Year, y=O3_10year), method="lm", formula=y~x, geom="smooth",color="black", linewidth=1.5)+
-  theme_bw()+
-  xlab("Year")+
-  ylab("O3 Emissions [DU]")+
-  scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,10))+
-  scale_y_continuous(expand=c(0,0), limits=c(90,150), breaks=seq(90,150, 20))
-  
-```
-
-AGGI 10-year averages trend
-```{r}
-AGGI_10<-ggplot(BigDays.sfdfT) +
-  geom_line(aes(x=Year, y= AGGI_10year), color="green4",linewidth=1 )+
-  theme_bw()+
-  theme(plot.title=element_text(hjust=0.5))+
-  xlab("Year")+
-  ylab("AGGI ")+
-  scale_x_continuous(expand=c(0,0), limits=c(1993, 2022), breaks=seq(1993,2022,10))+
-  scale_y_continuous(expand=c(0,0), limits=c(0.5,2), breaks=seq(0.5,2,0.2))
-  
-```
-
-```{r}
-grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2)
-```
-
-
-**Seasonal Change in Tornado Outbreaks**
-
-Spatial Density by Month
-Needs:
--Filter data for each month
--Calculate the total number of outbreaks per month
--create a figure for each month similar to the total outbreaks map
--Comment on which ones are the most dense and where
-
-Relationship between GHG Emission and Total Number of Outbreaks
-
-Correlation Matrix TABLE between GHG and Total Number of Outbreaks
-Needs for all four: 
--Tests for correlation
--Tests for Significance
-
-1 year emission correlation to tornado data
-```{r}
-test_1yr <- BigDays.sfdfT %>%
-  group_by(Year) %>%
-  summarize(numClus = n(), #Total number of clusters
-            avgTorn = mean(nT), #Average number of outbreak tornadoes per year
-            totTorn = sum(nT), #Total number of outbreak tornadoes per year
-            totCas = sum(GroupDayCas), #Total number of casualties by year
-            T_FO = sum(n0), T_F1= sum(n1), T_F2 = sum(n2),T_F3 = sum(n3), T_F4 = sum(n4), T_F5 = sum(n5),
-            CO2_1year = max(CO2_1year),
-            CH4_1year = max(CH4_1year),
-            O3_1year = max(O3_1year),
-            AGGI_1year = max(AGGI_1year)) %>%
-  st_drop_geometry()
-
-cor(test_1yr)
-```
-
-5 year emission correlation to tornado data
-```{r}
-test_5yr <- BigDays.sfdfT %>%
-  group_by(Year) %>%
-  summarize(numClus = n(), #Total number of clusters
-            avgTorn = mean(nT), #Average number of outbreak tornadoes per year
-            totTorn = sum(nT), #Total number of outbreak tornadoes per year
-            totCas = sum(GroupDayCas), #Total number of casualties by year
-            T_FO = sum(n0), T_F1= sum(n1), T_F2 = sum(n2),T_F3 = sum(n3), T_F4 = sum(n4), T_F5 = sum(n5),
-            CO2_5year = max(CO2_5year),
-            CH4_5year = max(CH4_5year),
-            O3_5year = max(O3_5year),
-            AGGI_5year = max(AGGI_5year)) %>%
-  st_drop_geometry()
-
-#need to fix the tornado data for 5 year avg
-cor(test_5yr) 
-```
-
-10 year emission correlation to tornado data
-```{r}
-test_10yr <- BigDays.sfdfT %>%
-  group_by(Year) %>%
-  summarize(numClus = n(), #Total number of clusters
-            avgTorn = mean(nT), #Average number of outbreak tornadoes per year
-            totTorn = sum(nT), #Total number of outbreak tornadoes per year
-            totCas = sum(GroupDayCas), #Total number of casualties by year
-            T_FO = sum(n0), T_F1= sum(n1), T_F2 = sum(n2),T_F3 = sum(n3), T_F4 = sum(n4), T_F5 = sum(n5),
-            CO2_10year = max(CO2_10year),
-            CH4_10year = max(CH4_10year),
-            O3_10year = max(O3_10year),
-            AGGI_10year = max(AGGI_10year)) %>%
-  st_drop_geometry()
-
-#need to fix the tornado data for 5 year avg
-cor(test_10yr) 
-```
-
-**Line Graph for total outbreaks and all four variables**
-Needs:
--Use data for everything from 1994 to 2022
-`Great Job!`
-```{r}
-#attempting to start this
-GHG_Out <-BigDays.sfdfT%>%
+Torn<-BigDays.sfdfT%>%
   group_by(Year)%>%
-  summarize(Avg1_CO2=mean(CO2_1year), Avg5_CO2=mean(CO2_5year), Avg10_CO2=mean(CO2_10year),
-            Avg1_CH4=mean(CH4_1year), Avg5_CH4=mean(CH4_5year), Avg10_CH4=mean(CH4_10year),
-            Avg1_O3=mean(O3_1year), Avg5_O3=mean(O3_5year), Avg10_O3=mean(O3_10year),
-            Avg1_AGGI=mean(AGGI_1year), Avg5_AGGI=mean(AGGI_5year), Avg10_AGGI=mean(AGGI_10year),
-            T_Year=n(),
+  summarise(Totout_yr=n(),
             T_avgyear = mean(nT),
-            T_FO = mean(n0), T_F1= mean(n1), T_F2 = mean(n2),T_F3 = mean(n3), T_F4 = mean(n4), T_F5 = mean(n5),
-            T_Cas = sum(GroupDayCas))
+            Tot_Cas = sum(GroupDayCas))
 
-
+max(Torn$Totout_yr)
+min(Torn$Totout_yr)
+max(Torn$Tot_Cas)
+min(Torn$Tot_Cas)
 ```
 
-##CO2 Trend Analysis with Total Tornado Outbreaks
-1 Year Averages CO2 and Outbreak Relationship
+**1 Year Averages CO2 and Outbreak Relationship**
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year*8), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
+CO2_1<-ggplot()+
   
-
-```
-*Both have positive regressions, but T-outbreaks is a lot slower*
-
-5 year averages CO2 and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year*8), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
-
-```
- 
-10 year averages CO2 and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year*8), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks")) 
-```
-
-
-##CH4 Trend Analysis with Total Tornado Outbreaks
-1 Year Averages CH4 and Outbreak Relationship
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year*25), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0,3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~./25, name = "Total Tornado Outbreaks"))
+  #Plotting Total # of Outbreak per year
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Totout_yr*8), 
+            stat="identity", 
+            fill="orange3", 
+            linewidth=1)+
   
-
-```
-
-
-5 year averages CH4 and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year*25), stat="identity", fill="goldenrod3", linewidth=1)+
+  #Plotting CO2 1 year Average
+  geom_line(data = GHG, 
+            aes(x=Year, y=CO2_1year), 
+            stat= "identity",
+            color="dodgerblue3", 
+            linewidth=1)+
+  
+  #Formatting plot
   theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~./25, name = "Total Tornado Outbreaks"))
-
-
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab(expression("CO"[2]*"Emissions (ppm)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 415),
+                     breaks = seq(0,450, 50), 
+                     sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks"))
 ```
- 
-10 year averages CH4 and Tornado Outbreaks
+
+**1 Year Averages CH4 and Outbreak**
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year*25), stat="identity", fill="goldenrod3", linewidth=1)+
+CH4_1<-ggplot()+
+  
+  #Plotting Total # of Outbreaks  per year
+  geom_bar(data = Torn,
+           aes(x=Year, y=Totout_yr*60), 
+           stat = "identity",
+           fill="orange3", 
+           linewidth=1)+
+  
+  #Plotting CH4 1 year averages
+  geom_line(data = GHG,
+            aes(x=Year, y=CH4_1year), 
+            color="purple3", 
+            stat = "identity",
+            linewidth=1)+
+  
+  #Formatting Plot
   theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~./25, name = "Total Tornado Outbreaks")) 
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab(expression("CH"[4]*" Emissions (ppb)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022),
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0,3000), 
+                     breaks = seq(0,3000, 500), 
+                     sec.axis = sec_axis(~./60, name = "Total Tornado Outbreaks"))
 ```
 
-
-##O3 Trend Analysis with Total Tornado Outbreaks
 1 Year Averages O3 and Outbreak Relationship
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year/.5), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emissions (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0,200), breaks = seq(0,200,20), sec.axis = sec_axis(~.*.5, name = "Total Tornado Outbreaks"))
-```
-
-
-5 year averages O3 and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year/.5), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emissions (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 200), breaks = seq(0,200, 20), sec.axis = sec_axis(~.*.5, name = "Total Tornado Outbreaks"))
-
-
-```
- 
-10 year averages O3 and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year/.5), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emission (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 200), breaks = seq(0,200, 20), sec.axis = sec_axis(~.*.5, name = "Total Tornado Outbreaks")) 
-```
-
-
-##AGGI Trend Analysis with Total Tornado Outbreaks
-1 Year Averages Aggi and Outbreak Relationship
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year/25), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0,0), limits=c(0,2), breaks = seq(0,2,.1), sec.axis = sec_axis(~.*25, name = "Total Tornado Outbreaks"))
-```
-
-
-5 year averages AGGI  and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year/25), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 2), breaks = seq(0,2,.1), sec.axis = sec_axis(~.*25, name = "Total Tornado Outbreaks"))
-
-
-```
- 
-10 year averages AGGI and Tornado Outbreaks
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Year/25), stat="identity", fill="goldenrod3", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 2), breaks = seq(0,2,.5), sec.axis = sec_axis(~.*25, name = "Total Tornado Outbreaks")) 
-```
-
-
-
-`You can do the same for all GHG variables. You can also do all of that again for the total number of casualties (This will help with significance/importance of your paper.) and average number of tornadoes per outbreak by year. I know this is a lot of figures, but this is how you need to do trend analysis to see what the data is showing you.`
-
-##C02 Trend Analysis with Total Casualties
-1 year average of CO2 & Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/20), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~.*20, name = "Total Casualties"))
-```
-
-
-5 year averages CO2 and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/20), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~.*20, name = "Total Casualties")) 
-
-```
- 
-10 year averages CO2 and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/20), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~.*20, name = "Total Casualties")) 
-```
-
-
-##CH4 Trend Analysis with Total Casualties
-1 Year Averages CH4 and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/2), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0,3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~.*2, name = "Total Casualties"))
+O3_1<-ggplot(GHG_Out)+
   
-
-```
-
-
-5 year averages CH4 and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/2), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~.*2, name = "Total Casualties"))
-
-```
- 
-10 year averages CH4 and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/2), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~.*2, name = "Total Casualties")) 
-```
-
-
-##O3 Trend Analysis with Total Casualties
-1 Year Averages O3 and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/30), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emissions (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0,200), breaks = seq(0,200,20), sec.axis = sec_axis(~.*30, name = "Total Casualties"))
-```
-
-
-5 year averages O3 and Tornado Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/30), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emissions (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 200), breaks = seq(0,200, 20), sec.axis = sec_axis(~.*30, name = "Total Casulties"))
-```
-
-10 year averages O3 and Tornado Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/30), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emission (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 200), breaks = seq(0,200, 20), sec.axis = sec_axis(~.*30, name = "Total Casualties")) 
-```
-
-
-##AGGI Trend Analysis with Total Casualties
-1 Year Averages AGGI and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/4000), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0,0), limits=c(0,2), breaks = seq(0,2,.1), sec.axis = sec_axis(~.*4000, name = "Total Casualties"))
-```
-
-5 year averages AGGI  and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/4000), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 2), breaks = seq(0,2,.1), sec.axis = sec_axis(~.*4000, name = "Total Casualties"))
-
-
-```
- 
-10 year averages AGGI and Total Casualties
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_Cas/4000), stat="identity", fill="deeppink3", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 2), breaks = seq(0,2,.5), sec.axis = sec_axis(~.*4000, name = "Total Casualties"))
-```
-
-##C02 Trend Analysis with Avg Tornadoes per year 
-1 year average of CO2 & Avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*10), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./10, name = "Average Tornadoes per year"))
-```
-
-
-5 year averages CO2 and Avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*10), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./10, name = "Average Tornadoes per year")) 
-
-```
- 
-10 year averages CO2 and Avg T per year 
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_CO2)), stat= "identity",color="dodgerblue3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*10), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("CO2 Emissions (ppm)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 415), breaks = seq(0,415, 50), sec.axis = sec_axis(~./10, name = "Average Tornadoes per year")) 
-```
-
-
-##CH4 Trend Analysis with avg T per year
-1 Year Averages CH4 and avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*50), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0,3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~./50,name="Average Tornadoes per year"))
+  #Plotting Total # of outbreaks per year
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Totout_yr/.3), 
+           stat = "identity",
+           fill="orange3", 
+           linewidth=1)+
   
-
-```
-
-
-5 year averages CH4 and avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*50), stat="identity", fill="purple1", linewidth=1)+
+  #Plotting O3 1 year averages
+  geom_line(data = GHG, 
+            aes(x=Year, y=O3_1year), 
+            color="goldenrod3",
+            stat = "identity",
+            linewidth=1)+
+  
+  #Formatting Plot
   theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~./50, name = "Average Tornadoes per year"))
-
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab(expression("O"[3]*" Emissions (DU)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022),
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0, 0),
+                     limits=c(0,200), 
+                     breaks = seq(0,200,20), 
+                     sec.axis = sec_axis(~.*.3, name = "Total Tornado Outbreaks"))
 ```
+
+1 Year Averages AGGI and Outbreak Relationship
+```{r}
+AGGI_1<-ggplot(GHG_Out)+
+  
+  #Plotting Total # of outbreaks per year
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Totout_yr/30), 
+           stat = "identity",
+           fill="orange3", 
+           linewidth=1)+
+  
+  #Plotting AGGI 1 year averages
+  geom_line(data = GHG, 
+            aes(x=Year, y=AGGI_1year),
+            color="green4", 
+            stat = "identity",
+            linewidth=1)+
+  
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab("AGGI")+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0,0), 
+                     limits=c(0,2),
+                     breaks = seq(0,2,.2), 
+                     sec.axis = sec_axis(~.*30, name = "Total Tornado Outbreaks"))
+```
+
+```{r}
+grid.arrange(CO2_1, CH4_1, O3_1, AGGI_1, nrow=2, top ="Annual Average Emissions & Total Outbreaks per Year")
+```
+
+###############################
+## 10-Year Graphs Out. & GHG ##
+###############################
+
+**10 year averages CO2 and Tornado Outbreaks**
+```{r}
+CO2_10<-ggplot()+
+  
+  #Plotting Total # of outbreaks per year
+  geom_bar(data =Torn,
+           aes(x=Year, y=Totout_yr*8), 
+           stat="identity", 
+           fill="orange3", 
+           linewidth=1)+
+  
+  #Plotting 10 Year average CO2
+  geom_line(data = GHG,
+            aes(x=Year, y=CO2_10year), 
+            stat= "identity",
+            color="dodgerblue3", 
+            linewidth=1)+
+
+  
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab(expression("CO"[2]*" Emissions (ppm)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 415), 
+                     breaks = seq(0,415, 50), 
+                     sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks")) 
+```
+
+**10 year averages CH4 and Tornado Outbreaks**
+```{r}
+CH4_10<-ggplot()+
+  
+  #Plotting Total # of outbreaks per year
+  geom_bar(data = Torn,
+           aes(x=Year, y=Totout_yr*60), 
+           fill="orange3", 
+           stat = "identity",
+           linewidth=1)+
+  
+  #Plotting CH4 10 year averages
+  geom_line(data = GHG,
+            aes(x=Year, y= CH4_10year), 
+            color="purple3", 
+            stat = "identity",
+            linewidth=1)+
+
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab(expression("CH"[4]*" Emissions (ppb)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 3000),
+                     breaks = seq(0,3000, 500), 
+                     sec.axis = sec_axis(~./60, name = "Total Tornado Outbreaks")) 
+```
+
+**10 year averages O3 and Tornado Outbreaks**
+```{r}
+O3_10<-ggplot()+
+  
+  #Plotting Total # of outbreaks per year
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Totout_yr/.3), 
+           fill="orange3",
+           stat ="identity",
+           linewidth=1)+
+  
+  #Plotting 10 year averages of O3
+  geom_line(data=GHG,
+            aes(x=Year, y=O3_10year), 
+            color="goldenrod3", 
+            stat = "identity",
+            linewidth=1)+
+  
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab(expression("O"[3]*" Emission (DU)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 200), 
+                     breaks = seq(0,200, 20), 
+                     sec.axis = sec_axis(~.*.3, name = "Total Tornado Outbreaks")) 
+```
+
+**10 year averages AGGI and Tornado Outbreaks**
+```{r}
+AGGI_10<-ggplot()+
+  
+  #Plotting Total # of outbreaks per year
+  geom_bar(data=Torn,
+           aes(x=Year, y=Totout_yr/30), 
+           stat = "identity",
+           fill="orange3", 
+           linewidth=1)+
+  
+  #Plotting 10 year averages AGGI
+  geom_line(data = GHG, 
+            aes(x=Year, y=AGGI_10year), 
+            stat = "identity",
+            color="green4", 
+            linewidth=1)+
+  
+  #Formatting Plot
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+  ylab("AGGI")+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 2), 
+                     breaks = seq(0,2,.2), 
+                     sec.axis = sec_axis(~.*30, name = "Total Tornado Outbreaks")) 
+```
+
+```{r}
+grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2, top ="Decadal Average Emissions & Total Outbreaks per Year")
+```
+
+#################################
+## Annual Change in Cas. & GHG ##
+################################
+
+**1 year average of CO2 & Total Casualties**
+```{r}
+Cas1<-ggplot()+
+  
+  #Plotting Annual Cas
+  geom_bar(data = Torn,
+           aes(x=Year, y=Tot_Cas/15), 
+           stat="identity",
+           fill="deeppink3", 
+           linewidth=1)+
+  
+  #Plotting Annual CO2
+  geom_line(data = GHG, 
+            aes(x=Year, y=CO2_1year), 
+            stat= "identity",
+            color="dodgerblue3", 
+            linewidth=1)+
+  
+  
+  #Formatting Graph
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab(expression("CO"[2]*" Emissions (ppm)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 415),
+                     breaks = seq(0,415, 50), 
+                     sec.axis = sec_axis(~.*15, name = "Total Casualties"))
+```
+
+**1 Year Averages CH4 and Total Casualties**
+```{r}
+Cas2<-ggplot()+
+  
+  #Plotting Cas.
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/2), 
+           stat="identity", 
+           fill="deeppink3",
+           linewidth=1)+
+  
+  #Plotting CH4 Emissions
+  geom_line(data = GHG, 
+            aes(x=Year, y=CH4_1year), 
+            stat= "identity",
+            color="purple3", 
+            linewidth=1)+
+  
+  #Formatting Graph
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab(expression("CH"[4]*" Emissions (ppb)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0,3000), 
+                     breaks = seq(0,3000, 500), 
+                     sec.axis = sec_axis(~.*2, name = "Total Casualties"))
+```
+
+**1 Year Averages O3 and Total *Casualties**
+```{r}
+Cas3<-ggplot()+
+  
+  #Plotting Cas
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/30), 
+           stat="identity", 
+           fill="deeppink3",
+           linewidth=1)+
+  
+  #Plotting O3
+  geom_line(data = GHG,
+            aes(x=Year, y=O3_1year),
+            stat= "identity",
+            color="darkorange3", 
+            linewidth=1)+
+  
+  #Formatting Graph
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab(expression("O"[3]*" Emissions (DU)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0,200), 
+                     breaks = seq(0,200,20), 
+                     sec.axis = sec_axis(~.*30, name = "Total Casualties"))
+```
+
+**1 Year Averages AGGI and Total Casualties**
+```{r}
+Cas4<-ggplot()+
+  
+  #Plotting Cas
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/3000), 
+           stat="identity", 
+           fill="deeppink3",
+           linewidth=1)+
+  
+  #Plotting AGGI
+  geom_line(data=GHG,
+            aes(x=Year, y=AGGI_1year),
+            stat= "identity",
+            color="green4", 
+            linewidth=1)+
+  
+  #Formatting Graph
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab("AGGI")+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,5))+
+  scale_y_continuous(expand = c(0,0), 
+                     limits=c(0,2), 
+                     breaks = seq(0,2,.2), 
+                     sec.axis = sec_axis(~.*3000, name = "Total Casualties"))
+```
+
+```{r}
+grid.arrange(Cas1, Cas2, Cas3, Cas4, nrow=2, top ="Annual Average Emissions & Total Outbreaks Casualties per Year")
+```
+
+#################################
+##Decadal Change in Cas. & GHG ##
+################################
+
+**10 year averages CO2 and Total Casualties**
+```{r}
+Cas10<-ggplot()+
+  
+  #plotting Cas
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/15), 
+           stat="identity", 
+           fill="deeppink3",
+           linewidth=1)+
+  
+  #plotting CO2
+  geom_line(data = GHG,
+            aes(x=Year, y=CO2_10year), 
+            stat= "identity",
+            color="dodgerblue3", 
+            linewidth=1)+
  
-10 year averages CH4 and avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_CH4)), stat= "identity",color="firebrick3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*50), stat="identity", fill="purple1", linewidth=1)+
+  #Formatting Graph
   theme_bw()+
-  ylab("CH4 Emissions (ppb)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 3000), breaks = seq(0,3000, 500), sec.axis = sec_axis(~./50, name = "Average Tornadoes per year")) 
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab(expression("CO"[2]*" Emissions (ppm)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022),
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 415), 
+                     breaks = seq(0,415, 50), 
+                     sec.axis = sec_axis(~.*15, name = "Total Casualties")) 
 ```
 
-
-##O3 Trend Analysis with Avg T per year
-1 Year Averages O3 and avg T per year
+**10 year averages CH4 and Total Casualties**
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*3), stat="identity", fill="purple1", linewidth=1)+
+Cas20<-ggplot()+
+  
+   #plotting Cas
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/2), 
+           stat="identity", 
+           fill="deeppink3", 
+           linewidth=1)+
+  
+  #plotting CH4
+  geom_line(data = GHG, 
+            aes(x=Year, y=CH4_10year), 
+            stat= "identity",
+            color="purple3", 
+            linewidth=1)+
+  
+  #Formatting Graph
   theme_bw()+
-  ylab("O3 Emissions (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0,200), breaks = seq(0,200,20), sec.axis = sec_axis(~./3, name = "Average  Tornadoes per year"))
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab(expression("CH"[4]*" Emissions (ppb)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 3000), 
+                     breaks = seq(0,3000, 500), 
+                     sec.axis = sec_axis(~.*2, name = "Total Casualties")) 
 ```
 
-
-5 year averages O3 and avg T per year
+**10 year averages O3 and Tornado Casualties**
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*3), stat="identity", fill="purple1", linewidth=1)+
+Cas30<-ggplot()+
+    
+  #plotting Cas
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/30),
+           stat="identity", 
+           fill="deeppink3",
+           linewidth=1)+
+  
+  #plotting O3
+  geom_line(data = GHG, 
+            aes(x=Year, y=O3_10year), 
+            stat= "identity",
+            color="darkorange3", 
+            linewidth=1)+
+  
+  #formatting graph
   theme_bw()+
-  ylab("O3 Emissions (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 200), breaks = seq(0,200, 20), sec.axis = sec_axis(~./3, name = "Average Tornadoes per year"))
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  ylab(expression("O"[3]*" Emission (DU)"))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 200),
+                     breaks = seq(0,200, 20), 
+                     sec.axis = sec_axis(~.*30, name = "Total Casualties")) 
 ```
 
-10 year averages O3 and avg T per year
+**10 year averages AGGI and Total Casualties**
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_O3)), stat= "identity",color="darkorange3", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear*3), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("O3 Emission (DU)")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 200), breaks = seq(0,200, 20), sec.axis = sec_axis(~./3, name = "Average Tornadoes per year")) 
-```
-
-
-##AGGI Trend Analysis with avg T per year
-1 Year Averages AGGI and avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg1_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear/30), stat="identity", fill="purple1", linewidth=1)+
+Cas40<-ggplot()+
+  
+  #plotting cas
+  geom_bar(data = Torn, 
+           aes(x=Year, y=Tot_Cas/3000), 
+           stat="identity", 
+           fill="deeppink3",
+           linewidth=1)+
+  
+  #plotting AGGI
+  geom_line(data =GHG, 
+            aes(x=Year, y=AGGI_10year),
+            stat= "identity",
+            color="green4",
+            linewidth=1)+
+  
+  #formatting graph
   theme_bw()+
   ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,2))+
-  scale_y_continuous(expand = c(0,0), limits=c(0,2), breaks = seq(0,2,.1), sec.axis = sec_axis(~.*30, name = "Average Tornadoes per year"))
+  theme(axis.text.x=element_text(angle=45, hjust=1))+
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1994,2022), 
+                     breaks=seq(1994,2022,10))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 2), 
+                     breaks = seq(0,2,.2), 
+                     sec.axis = sec_axis(~.*3000, name = "Total Casualties"))
 ```
 
-5 year averages AGGI  and avg T per year
 ```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg5_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear/30), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 2), breaks = seq(0,2,.1), sec.axis = sec_axis(~.*30, name = "Average Tornadoes per year"))
-
-
+grid.arrange(Cas10, Cas20, Cas30, Cas40, nrow=2, top ="Decadal Average Emissions & Total Outbreaks Casualties per Year")
 ```
- 
-10 year averages AGGI and avg T per year
-```{r}
-ggplot(GHG_Out)+
-  geom_line(aes(x=Year, y=(Avg10_AGGI)), stat= "identity",color="green4", linewidth=1)+
-  geom_bar(aes(x=Year, y=T_avgyear/30), stat="identity", fill="purple1", linewidth=1)+
-  theme_bw()+
-  ylab("AGGI")+
-  scale_x_continuous(expand = c(0,0),limits=c(1994,2022), breaks=seq(1994,2022,5))+
-  scale_y_continuous(expand = c(0, 0), limits=c(0, 2), breaks = seq(0,2,.5), sec.axis = sec_axis(~.*30, name = "Average Tornadoes per year"))
-```
-
