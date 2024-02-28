@@ -484,7 +484,7 @@ test_1yr <- BigDays.sfdfT %>%
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
-            T_FO = mean(n0), T_F1= mean(n1), T_F2 = mean(n2),T_F3 = mean(n3), T_F4 = mean(n4), T_F5 = mean(n5),
+            T_FO = sum(n0), T_F1= sum(n1), T_F2 = sum(n2),T_F3 = sum(n3), T_F4 = sum(n4), T_F5 = sum(n5),
             CO2_1year = max(CO2_1year),
             CH4_1year = max(CH4_1year),
             O3_1year = max(O3_1year),
@@ -502,7 +502,7 @@ test_5yr <- BigDays.sfdfT %>%
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
-            T_FO = mean(n0), T_F1= mean(n1), T_F2 = mean(n2),T_F3 = mean(n3), T_F4 = mean(n4), T_F5 = mean(n5),
+            T_FO = sum(n0), T_F1= sum(n1), T_F2 = sum(n2),T_F3 = sum(n3), T_F4 = sum(n4), T_F5 = sum(n5),
             CO2_5year = max(CO2_5year),
             CH4_5year = max(CH4_5year),
             O3_5year = max(O3_5year),
@@ -521,7 +521,7 @@ test_10yr <- BigDays.sfdfT %>%
             avgTorn = mean(nT), #Average number of outbreak tornadoes per year
             totTorn = sum(nT), #Total number of outbreak tornadoes per year
             totCas = sum(GroupDayCas), #Total number of casualties by year
-            T_FO = mean(n0), T_F1= mean(n1), T_F2 = mean(n2),T_F3 = mean(n3), T_F4 = mean(n4), T_F5 = mean(n5),
+            T_FO = sum(n0), T_F1= sum(n1), T_F2 = sum(n2),T_F3 = sum(n3), T_F4 = sum(n4), T_F5 = sum(n5),
             CO2_10year = max(CO2_10year),
             CH4_10year = max(CH4_10year),
             O3_10year = max(O3_10year),
