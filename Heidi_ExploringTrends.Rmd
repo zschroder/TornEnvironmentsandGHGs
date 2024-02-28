@@ -57,7 +57,7 @@ cas<- cas[-c(1:3)]
 #################
 
 ```{r}
-#Might be the GHG and Cas. Chart created later
+#Using the GHG and Total Outbreak Chart created later
 ```
 
 ########################
@@ -336,6 +336,116 @@ tm_shape(BigDayCentroids.df,
             legend.text.size = 0.7)
   
 ``` 
+
+##################
+## GHG GML Data ##
+##################
+
+CO2 Annual Average
+```{r}
+#Plotting CO2 1 Year Averages 
+CO2_GML<- ggplot(AnnGHG, 
+                  aes(x= year, y=CO2_ppm))+
+
+  #Line Graph
+   geom_line(stat="identity", 
+             color = "dodgerblue3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Foratting Axes
+   ylab(expression("CO"[2]* "(ppm)"))+
+   scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1994, 2022), 
+                     breaks = seq(1994, 2022,4)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits=c(350, 415), 
+                     breaks = seq(350, 415, 10)) 
+```
+
+CH4 Annual Average
+```{r}
+#Plotting CH4 Data
+CH4_GML<-ggplot(AnnGHG, 
+                  aes(x=year, y = CH4_ppb))+
+ 
+  #Line Graph
+   geom_line(stat="identity",
+             color = "purple3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+   ylab(expression("CH"[4]* "(ppb)"))+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(1740,1880), 
+                      breaks=seq(1720,1880, 20))
+```
+
+O3 Annual Average
+```{r}
+#Plotting O3 Data
+O3_GML<-ggplot(AnnGHG,
+               aes(x=year, y=O3_DU))+
+
+  #Line Graph
+   geom_line(stat="identity",
+             color = "goldenrod3",
+             linewidth = 1)+
+  
+  #Formatting Plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust = 1))+
+  
+  #Formatting axes
+   ylab(expression("O"[3]* "(DU)"))+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(90,175), 
+                      breaks=seq(90,175, 20))
+```
+
+AGGI Annual Average
+```{r}
+#Plotting AGGI Data
+AGGI_GML<- ggplot(AnnGHG,
+                  aes(x=year, y=AGGI))+
+  
+  #Line Graph
+   geom_line(stat="identity", 
+             color = "green4",
+             linewidth = 1)+
+  
+  #Formatting plot
+   theme_bw()+
+   theme(axis.text.x=element_text(angle=45, hjust=1))+
+  
+  #Formatting Axes
+   ylab("AGGI")+
+   xlab("Year")+
+   scale_x_continuous(expand=c(0,0), 
+                      limits=c(1994, 2022), 
+                      breaks=seq(1994,2022,4))+
+   scale_y_continuous(expand=c(0,0), 
+                      limits=c(0.5,2),
+                      breaks=seq(0.5,2,0.2))
+```
+
+4x4 Grid Annual Averages
+```{r}
+grid.arrange(CO2_GML, CH4_GML, O3_GML, AGGI_GML, nrow=2,ncol=2, top ="Annual Averages of Greenhouse Gas Emissions from GML")
+```
 
 
 RESULTS
@@ -1080,7 +1190,7 @@ Cas2<-ggplot()+
   geom_line(data = GHG, 
             aes(x=Year, y=CH4_1year), 
             stat= "identity",
-            color="firebrick3", 
+            color="purple3", 
             linewidth=1)+
   
   #Formatting Graph
@@ -1212,7 +1322,7 @@ Cas20<-ggplot()+
   geom_line(data = GHG, 
             aes(x=Year, y=CH4_10year), 
             stat= "identity",
-            color="firebrick3", 
+            color="purple3", 
             linewidth=1)+
   
   #Formatting Graph
