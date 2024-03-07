@@ -756,18 +756,26 @@ library("corrplot")
 
 ```{r}
 ModelData <- BigDays.sfdfT %>%
-  dplyr::select(maxCAPE, 
+  dplyr::select(nT, 
+                GroupDayCas, 
+                maxCAPE,
+                minCIN,
                 maxBS_deep, 
                 maxBS_shallow, 
                 CO2_10year,
                 CH4_10year, 
                 O3_10year,
-                AGGI_10year)
+                AGGI_10year,
+                Lat,
+                Lon,
+                HullArea,
+                totalPOP,
+                Year)
 
-colnames(ModelData) <- c("CAPE", "DLBS", "SLBS", "CO2", "CH4", "O3", "AGGI", "geometry")
+colnames(ModelData) <- c("Torn", "Cas", "CAPE", "CIN", "DLBS", "SLBS", "CO2", "CH4", "O3", "AGGI", "Lat", "Lon", "Area", "Pop", "Year", "geometry")
 ModelData <- as.data.frame(ModelData)
-ModelData <- ModelData[1:7]
+ModelData <- ModelData[1:15]
 cordat <- cor(ModelData)
-corrplot(cordat, method="shade", type = "lower", tl.col="black")
+corrplot(cordat, method="number", type = "lower", tl.col="black")
 ```
 
