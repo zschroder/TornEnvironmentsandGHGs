@@ -70,8 +70,9 @@ tm_shape(Florida) +
   tm_bubbles(size = 0.15,
              col = "mag",
              breaks=seq(0,5,by=1),
-             border.lwd= 0.4,
-             border.col = "black",
+             #border.lwd= 0.4,
+             #border.col = "mag",
+             border.alpha = 0,
              palette = cr,
             labels=c("EF0", "EF1","EF2", "EF3", "EF4"),
             title.col="Magntiude") +
@@ -101,7 +102,7 @@ tm_shape(Florida) +
 
 `If you are wanting to find a day that has more than one cluster, do this: `
 ```{r}
-BigDays.sfdfT %>% # Cluster Data
+x <- BigDays.sfdfT %>% # Cluster Data
   group_by(cDate) %>% # Group by the convective days to see if there are duplicates.
   summarize(num_of_clusters = n()) %>% # Count the number of clusters on each cDate.
   arrange(desc(num_of_clusters)) # Arrange the number of clusters column in descending order.
@@ -141,11 +142,13 @@ tm_shape(Jun04,
               border.col = "black", 
               lwd = 1.5) +
 tm_shape(Jun04Torns) +
-  tm_bubbles(size = 1, 
+  tm_bubbles(alpha = 0.7,
+             size = 1, 
              col="ID", 
              breaks=seq(0,5,by=1),
-             border.lwd= 0.4,
-             border.col = "black",
+             #border.lwd= 0.4,
+             #border.col = "black",
+             border.alpha = 0,
              palette = c("blue", "red")) +
   tm_layout(title="June 4, 1999", 
             title.position = c("center", "top"), 
