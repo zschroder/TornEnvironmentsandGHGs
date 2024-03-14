@@ -509,14 +509,17 @@ Carbon Dioxide:
 ```{r}
 CO2_plot <- ggplot(GHG_Emissions) +
   geom_line(aes(x = year, y = CO2_ppm), 
-            color = "red",
+            color = "red3",
             linewidth = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Carbon Dioxide Emissions (ppm)") +
-  theme(axis.text = element_text(size = 14), 
-        axis.title = element_text(size = 16), 
-        legend.text = element_text(size = 16)) +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
                      limits=c(1959, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
@@ -536,9 +539,12 @@ CH4_plot <- ggplot(GHG_Emissions) +
   theme_bw() +
   xlab("Year") +
   ylab("Methane Emissions (ppb)") +
-  theme(axis.text = element_text(size = 14), 
-        axis.title = element_text(size = 16), 
-        legend.text = element_text(size = 16)) +
+  theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
                      limits=c(1960, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
@@ -558,9 +564,12 @@ O3_plot <- ggplot(GHG_Emissions) +
   theme_bw() +
   xlab("Year") +
   ylab("Ozone Emissions (DU)") +
-  theme(axis.text = element_text(size = 14), 
-        axis.title = element_text(size = 16), 
-        legend.text = element_text(size = 16)) +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
                      limits=c(1960, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
@@ -580,9 +589,12 @@ AGGI_plot <- ggplot(GHG_Emissions) +
   theme_bw() +
   xlab("Year") +
   ylab("Annual Greenhouse Gas Index") +
-  theme(axis.text = element_text(size = 14), 
-        axis.title = element_text(size = 16), 
-        legend.text = element_text(size = 16)) +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
                      limits=c(1960, 2023), 
                      breaks = seq(1960, 2023, 10)) + 
@@ -597,6 +609,7 @@ Step 3: Make the 2x2 grid panel of the emission values.
 ```{r}
 grid.arrange(CO2_plot, CH4_plot, O3_plot, AGGI_plot, nrow = 2)
 ```
+`Fig_GHGEmissionsData`
 
 ## Plot the 10-year average GHG values with the maximum (minimum for CIN) environmental variables for outbreaks with at least ten tornadoes.
 
@@ -751,31 +764,31 @@ grid.arrange(p1, p2, p3, p4, nrow = 2)
 
 ```{r}
 #install.packages("corrplot")
- 
+library(corrplot)
 ```
 
 ```{r}
 ModelData <- BigDays.sfdfT %>%
-  dplyr::select(nT, 
-                GroupDayCas, 
-                maxCAPE,
-                minCIN,
+  dplyr::select(maxCAPE, 
                 maxBS_deep, 
                 maxBS_shallow, 
                 CO2_10year,
                 CH4_10year, 
                 O3_10year,
-                AGGI_10year,
-                Lat,
-                Lon,
-                HullArea,
-                totalPOP,
-                Year)
+                AGGI_10year)
 
-colnames(ModelData) <- c("Torn", "Cas", "CAPE", "CIN", "DLBS", "SLBS", "CO2", "CH4", "O3", "AGGI", "Lat", "Lon", "Area", "Pop", "Year", "geometry")
+colnames(ModelData) <- c("CAPE", "DLBS", "SLBS", "CO2", "CH4", "O3", "AGGI", "geometry")
+
 ModelData <- as.data.frame(ModelData)
-ModelData <- ModelData[1:15]
+ModelData <- ModelData[1:7]
+
 cordat <- cor(ModelData)
-corrplot(cordat, method="number", type = "lower", tl.col="black")
+
+corrplot(cordat, 
+         method="number", 
+         col = COL1("YlOrRd",200),
+         type = "lower", 
+         tl.col="black",
+         col.lim = c(-1,1))
 ```
 
