@@ -1187,3 +1187,35 @@ avgTemp80
   plot(ta_80[[1]])
 ```
 
+```{r}
+fname = "E:/Zoe/Projects/TornEnvironmentsandGHGs/tas_Amon_CNRM-CM6-1_historical_r1i1p1f2_gr_185001-201412.nc"
+
+tas <- brick(fname)
+
+#contiguous United States Extent---matches the population
+  ext = raster::extent(c(235, 293, 24, 50))
+#temperatures are in Kelvin
+  #multiple layers for every day try ta_80$
+  tas_US = crop(tas, ext)
+  plot(tas_US[[1]])
+
+tas_1950 <- mean(tas_US[[1:12]])  
+plot(tas_1950)
+```
+
+```{r}
+fname = "E:/Zoe/Projects/TornEnvironmentsandGHGs/ta_Amon_CNRM-CM6-1_historical_r1i1p1f2_gr_185001-201412.nc"
+
+ta <- brick("E:/Zoe/Projects/TornEnvironmentsandGHGs/ta_Amon_CNRM-CM6-1_historical_r1i1p1f2_gr_185001-201412.nc", package="raster")
+test <- raster(ta, layer = 2)
+#contiguous United States Extent---matches the population
+  ext = raster::extent(c(235, 293, 24, 50))
+#temperatures are in Kelvin
+  #multiple layers for every day try ta_80$
+  ta_US = crop(test, ext)
+  plot(ta_US)
+
+  #install.packages('terra', repos='https://rspatial.r-universe.dev')
+library(terra)
+x <- rast('SSS.nc')
+```
