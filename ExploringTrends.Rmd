@@ -168,6 +168,13 @@ tm_shape(Jun04cent) +
 AnnGHG <- read.csv("AnnualAverages_GHG.csv")
 ```
 
+CO2: "blue"
+CH4: "purple3"
+SF6: "red4"
+N2O: "deeppink"
+O3: "goldenrod"
+AGGI: "green4"
+
 
 Carbon Dioxide Emissions by Year
 ```{r}
@@ -183,14 +190,15 @@ p1 <- ggplot(AnnGHG,
          axis.text.y = element_text(size = 14), 
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
-   ylab(expression("Carbon Dioxide Emissions (in ppm)")) +
+   ylab(expression("Carbon Dioxide (in ppm)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
-                     limits = c(1984, 2022), 
-                     breaks = seq(1984, 2022, 3)) + 
+                     limits = c(1979, 2022), 
+                     breaks = seq(1979, 2022, 3)) + 
    scale_y_continuous(expand = c(0,0), 
-                     limits = c(340, 420), 
-                     breaks = seq(340, 420, 10)) 
+                     limits = c(330, 420), 
+                     breaks = seq(330, 420, 10)) 
+p1
 ```
 
 Methane Emissions by Year
@@ -207,19 +215,70 @@ p2 <- ggplot(AnnGHG,
          axis.text.y = element_text(size = 14), 
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
-   ylab(expression("Methane Emissions (in ppb)")) +
+   ylab(expression("Methane (in ppb)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
-                     limits = c(1984, 2022), 
-                     breaks = seq(1984, 2022, 3)) + 
+                     limits = c(1979, 2022), 
+                     breaks = seq(1979, 2022, 3)) + 
    scale_y_continuous(expand = c(0,0), 
-                     limits = c(1600, 1950), 
-                     breaks = seq(1600, 1950, 50)) 
+                     limits = c(1550, 1950), 
+                     breaks = seq(1550, 1950, 50)) 
+p2
+```
+
+```{r}
+p3 <- ggplot(AnnGHG, 
+      aes(x= year, y=SF6_ppt))+
+   geom_line(stat="identity", 
+             color = "red2",
+             linewidth = 1.5)+
+   theme_bw() +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
+   ylab(expression("Sulfur Hexafluoride (in ppt)")) +
+   xlab("Year") +
+   scale_x_continuous(expand = c(0, 0), 
+                     limits = c(1979, 2022), 
+                     breaks = seq(1979, 2022, 3)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits = c(0, 12), 
+                     breaks = seq(0, 12, 2)) 
+
+p3
+```
+
+```{r}
+p4 <- ggplot(AnnGHG, 
+      aes(x= year, y=N2O_ppb))+
+   geom_line(stat="identity", 
+             color = "deeppink",
+             linewidth = 1.5)+
+   theme_bw() +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
+   ylab(expression("Nitrous Oxide (in ppb)")) +
+   xlab("Year") +
+   scale_x_continuous(expand = c(0, 0), 
+                     limits = c(1979, 2022), 
+                     breaks = seq(1979, 2022, 3)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits = c(300, 340), 
+                     breaks = seq(300, 340, 5)) 
+
+p4
 ```
 
 Ozone Emissions by Year
 ```{r}
-p3 <- ggplot(AnnGHG, 
+p5 <- ggplot(AnnGHG, 
       aes(x= year, y=O3_DU))+
    geom_line(stat="identity", 
              color = "goldenrod",
@@ -231,19 +290,20 @@ p3 <- ggplot(AnnGHG,
          axis.text.y = element_text(size = 14), 
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
-   ylab(expression("Ozone Emissions (in DU)")) +
+   ylab(expression("Ozone (in DU)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
-                     limits = c(1984, 2022), 
-                     breaks = seq(1984, 2022, 3)) + 
+                     limits = c(1979, 2022), 
+                     breaks = seq(1979, 2022, 3)) + 
    scale_y_continuous(expand = c(0,0), 
-                     limits = c(90, 180), 
-                     breaks = seq(90, 180, 10)) 
+                     limits = c(90, 230), 
+                     breaks = seq(90, 230, 10)) 
+p5
 ```
 
 Annual Greenhouse Gas Index by Year
 ```{r}
-p4 <- ggplot(AnnGHG, 
+p6 <- ggplot(AnnGHG, 
       aes(x= year, y = AGGI))+
    geom_line(stat="identity", 
              color = "green4",
@@ -258,23 +318,24 @@ p4 <- ggplot(AnnGHG,
    ylab(expression("Annual Greenhouse Gas Index (AGGI)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
-                     limits = c(1984, 2022), 
-                     breaks = seq(1984, 2022, 3)) + 
+                     limits = c(1979, 2022), 
+                     breaks = seq(1979, 2022, 3)) + 
    scale_y_continuous(expand = c(0,0), 
-                     limits = c(0.85, 1.5), 
-                     breaks = seq(0.85, 1.5, 0.1)) 
+                     limits = c(0.7, 1.5), 
+                     breaks = seq(0.7, 1.5, 0.1)) 
+p6
 ```
 
 4x4 Grid Annual Averages
 ```{r}
-grid.arrange(p1, p2, p3, p4, 
-             nrow=2,
-             ncol=2, 
-             top = textGrob("Greenhouse Gas Emissions\n 1984 to 2022", 
+grid.arrange(p1, p2, p3, p4, p5, p6,
+             nrow = 3,
+             ncol = 2, 
+             top = textGrob(" ", 
                             gp=gpar(fontsize = 20)))
 ```
 
-`FIG_GHGEmissions`
+`FIG_GHGConcentrations`
 
 ## Outbreak Density by County:
 
@@ -452,7 +513,7 @@ p1 <- ggplot(BigDays.sfdfT,
          axis.text.y = element_text(size = 14), 
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
-   ylab(expression("Carbon Dioxide Emissions (in ppm)")) +
+   ylab(expression("Carbon Dioxide (in ppm)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
                      limits = c(1994, 2022), 
@@ -478,7 +539,7 @@ p2 <- ggplot(BigDays.sfdfT,
          axis.text.y = element_text(size = 14), 
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
-   ylab(expression("Methane Emissions (in ppb)")) +
+   ylab(expression("Methane (in ppb)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
                      limits = c(1994, 2022), 
@@ -489,9 +550,58 @@ p2 <- ggplot(BigDays.sfdfT,
 p2
 ```
 
-Ozone Emissions by Year
 ```{r}
 p3 <- ggplot(BigDays.sfdfT, 
+      aes(x= Year, y=SF6_10year))+
+   geom_line(stat="identity", 
+             color = "red2",
+             linewidth = 1.5)+
+   theme_bw() +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
+   ylab(expression("Sulfur Hexafluoride (in ppt)")) +
+   xlab("Year") +
+   scale_x_continuous(expand = c(0, 0), 
+                     limits = c(1994, 2022), 
+                     breaks = seq(1994, 2022, 3)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits = c(0, 12), 
+                     breaks = seq(0, 12, 2)) 
+
+p3
+```
+
+```{r}
+p4 <- ggplot(BigDays.sfdfT, 
+      aes(x= Year, y=N2O_10year))+
+   geom_line(stat="identity", 
+             color = "deeppink",
+             linewidth = 1.5)+
+   theme_bw() +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
+   ylab(expression("Nitrous Oxide (in ppb)")) +
+   xlab("Year") +
+   scale_x_continuous(expand = c(0, 0), 
+                     limits = c(1994, 2022), 
+                     breaks = seq(1994, 2022, 3)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits = c(300, 340), 
+                     breaks = seq(300, 340, 5)) 
+
+p4
+```
+Ozone Emissions by Year
+```{r}
+p5 <- ggplot(BigDays.sfdfT, 
       aes(x= Year, y= O3_10year)) +
    geom_line(stat="identity", 
              color = "goldenrod",
@@ -503,7 +613,7 @@ p3 <- ggplot(BigDays.sfdfT,
          axis.text.y = element_text(size = 14), 
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
-   ylab(expression("Ozone Emissions (in DU)")) +
+   ylab(expression("Ozone (in DU)")) +
    xlab("Year") +
    scale_x_continuous(expand = c(0, 0), 
                      limits = c(1994, 2022), 
@@ -512,12 +622,12 @@ p3 <- ggplot(BigDays.sfdfT,
                      limits = c(90, 180), 
                      breaks = seq(90, 180, 10)) 
 
-p3
+p5
 ```
 
 Annual Greenhouse Gas Index by Year
 ```{r}
-p4 <- ggplot(BigDays.sfdfT, 
+p6 <- ggplot(BigDays.sfdfT, 
       aes(x= Year, y= AGGI_10year)) +
    geom_line(stat="identity", 
              color = "green4",
@@ -537,17 +647,17 @@ p4 <- ggplot(BigDays.sfdfT,
    scale_y_continuous(expand = c(0,0), 
                      limits = c(0.85, 1.5), 
                      breaks = seq(0.85, 1.5, 0.1)) 
-p4
+p6
 ```
 
 ```{r}
-grid.arrange(p1, p2, p3, p4, 
-             nrow=2,
+grid.arrange(p1, p2, p3, p4, p5, p6,
+             nrow=3,
              ncol=2, 
-             top = textGrob("Greenhouse Gas Emissions\n 10-Year Average", 
+             top = textGrob(" ", 
                             gp=gpar(fontsize = 20)))
 ```
-
+`FIG_DecadalGHG`
 **10-Year Correlation Matrix**
 ```{r}
 TenYearCor <- BigDays.sfdfT%>%
@@ -555,22 +665,24 @@ dplyr::select(nT,
               GroupDayCas,
               CO2_10year,
               CH4_10year, 
+              SF6_10year,
+              N2O_10year,
               O3_10year,
               AGGI_10year)
 
 #creating column names
-colnames(TenYearCor) = c("Total Tornades","Total Casualties","CO2", "CH4", "O3", "AGGI")
+colnames(TenYearCor) = c("Total Tornades","Total Casualties","CO2", "CH4", "SF6", "N2O", "O3", "AGGI")
 
 #creating data frame
 TenYearCor <- as.data.frame(TenYearCor)
-TenYearCor <- TenYearCor[1:6]
+TenYearCor <- TenYearCor[1:8]
 
 #running correlation test
 cordat <- cor(TenYearCor)
 
 #formatting matrix
 corrplot(cordat, 
-         method ="circle",
+         method ="number",
          col = COL1("YlOrRd",200),
          type= "lower", 
          tl.col = "black",
@@ -602,8 +714,8 @@ p1 <- ggplot() +
             stat="identity", 
             fill="grey40", 
             linewidth = 1) +
-  geom_line(data = GHG, 
-            aes(x = Year, y = CO2_1year), 
+  geom_line(data = BigDays.sfdfT, 
+            aes(x = Year, y = CO2_10year), 
             stat = "identity",
             color ="blue", 
             linewidth = 1.5)+
@@ -615,7 +727,7 @@ p1 <- ggplot() +
          axis.title.x = element_text(size = 16),
          axis.title.y.right = element_text(size = 16, color = "black"),
          axis.title.y.left = element_text(size = 16, color = "blue")) +
-  ylab(expression("Carbon Dioxide Emissions (in ppm)"))+
+  ylab(expression("Carbon Dioxide (in ppm)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1993,2023), 
                      breaks=seq(1994,2022,4))+
@@ -623,6 +735,7 @@ p1 <- ggplot() +
                      limits=c(0, 450),
                      breaks = seq(0,450, 50), 
                      sec.axis = sec_axis(~./7, name = "Number of Clusters"))
+p1
 ```
 
 **10 year averages CH4 and Tornado Outbreaks**
@@ -633,7 +746,7 @@ p2 <- ggplot()+
            fill ="grey40", 
            stat = "identity",
            linewidth = 1)+
-  geom_line(data = GHG,
+  geom_line(data = BigDays.sfdfT,
             aes(x = Year, y = CH4_10year), 
             color="purple3", 
             stat = "identity",
@@ -646,7 +759,7 @@ p2 <- ggplot()+
          axis.title.x = element_text(size = 16),
          axis.title.y.right = element_text(size = 16, color = "black"),
          axis.title.y.left = element_text(size = 16, color = "purple3")) +
-  ylab(expression("Methane Emissions (in ppb)")) +
+  ylab(expression("Methane (in ppb)")) +
   scale_x_continuous(expand = c(0,0),
                      limits=c(1993,2023), 
                      breaks=seq(1994,2022,4))+
@@ -654,17 +767,82 @@ p2 <- ggplot()+
                      limits=c(0, 2000),
                      breaks = seq(0,2000, 500), 
                      sec.axis = sec_axis(~./30, name = "Number of Clusters")) 
+p2
+```
+
+**10 year averages N2O and Tornado Outbreaks**
+```{r}
+p4 <- ggplot()+
+  geom_bar(data = Torn,
+           aes(x = Year, y = Totout_yr*6), 
+           fill ="grey40", 
+           stat = "identity",
+           linewidth = 1)+
+  geom_line(data = BigDays.sfdfT,
+            aes(x = Year, y = N2O_10year), 
+            color="deeppink", 
+            stat = "identity",
+            linewidth = 1.5) +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, 
+                                 hjust=1, 
+                                 size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y.right = element_text(size = 16, color = "black"),
+         axis.title.y.left = element_text(size = 16, color = "deeppink")) +
+  ylab(expression("Nitrous Oxide (in ppb)")) +
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1993,2023), 
+                     breaks=seq(1994,2022,4))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 350),
+                     breaks = seq(0,350, 50), 
+                     sec.axis = sec_axis(~./6, name = "Number of Clusters")) 
+p4
+```
+
+**10 year averages SF6 and Tornado Outbreaks**
+```{r}
+p3 <- ggplot()+
+  geom_bar(data = Torn,
+           aes(x = Year, y = Totout_yr/10), 
+           fill ="grey40", 
+           stat = "identity",
+           linewidth = 1)+
+  geom_line(data = BigDays.sfdfT,
+            aes(x = Year, y = SF6_10year), 
+            color="red2", 
+            stat = "identity",
+            linewidth = 1.5) +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, 
+                                 hjust=1, 
+                                 size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y.right = element_text(size = 16, color = "black"),
+         axis.title.y.left = element_text(size = 16, color = "red2")) +
+  ylab(expression("Sulfar Hexafluoride (in ppt)")) +
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1993,2023), 
+                     breaks=seq(1994,2022,4))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 10),
+                     breaks = seq(0,10, 1), 
+                     sec.axis = sec_axis(~.*10, name = "Number of Clusters")) 
+p3
 ```
 
 **10 year averages O3 and Tornado Outbreaks**
 ```{r}
-p3 <- ggplot()+
+p5 <- ggplot()+
   geom_bar(data = Torn, 
            aes(x=Year, y=Totout_yr/.5), 
            fill="grey40",
            stat ="identity",
            linewidth = 1)+
-  geom_line(data =GHG,
+  geom_line(data =BigDays.sfdfT,
             aes(x = Year, y = O3_10year), 
             color = "goldenrod3", 
             stat = "identity",
@@ -677,7 +855,7 @@ p3 <- ggplot()+
          axis.title.x = element_text(size = 16),
          axis.title.y.right = element_text(size = 16, color = "black"),
          axis.title.y.left = element_text(size = 16, color = "goldenrod3")) +
-  ylab(expression("Ozone Emissions (in DU)"))+
+  ylab(expression("Ozone (in DU)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1993,2023), 
                      breaks=seq(1994,2022,4))+
@@ -689,13 +867,13 @@ p3 <- ggplot()+
 
 **10 year averages AGGI and Tornado Outbreaks**
 ```{r}
-p4 <- ggplot()+
+p6 <- ggplot()+
   geom_bar(data=Torn,
            aes(x=Year, y=Totout_yr/50), 
            stat = "identity",
            fill="grey40", 
            linewidth=1)+
-  geom_line(data = GHG, 
+  geom_line(data = BigDays.sfdfT, 
             aes(x = Year, y = AGGI_10year), 
             stat = "identity",
             color = "green4", 
@@ -719,10 +897,10 @@ p4 <- ggplot()+
 ```
 
 ```{r}
-grid.arrange(p1, p2, p3, p4, 
-             nrow=2,
+grid.arrange(p1, p2, p3, p4, p5, p6,
+             nrow=3,
              ncol=2, 
-             top = textGrob("Decadal Trends in GHG Emissions and Total Clusters", 
+             top = textGrob(" ", 
                             gp=gpar(fontsize = 20)))
 ```
 `FIG_DecTrends`
@@ -735,7 +913,7 @@ p1 <- ggplot() +
             stat="identity", 
             fill="grey40", 
             linewidth = 1) +
-  geom_line(data = GHG, 
+  geom_line(data = BigDays.sfdfT, 
             aes(x = Year, y = CO2_1year), 
             stat = "identity",
             color ="blue", 
@@ -748,7 +926,7 @@ p1 <- ggplot() +
          axis.title.x = element_text(size = 16),
          axis.title.y.right = element_text(size = 16, color = "black"),
          axis.title.y.left = element_text(size = 16, color = "blue")) +
-  ylab(expression("Carbon Dioxide Emissions (in ppm)"))+
+  ylab(expression("Carbon Dioxide (in ppm)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1993,2023), 
                      breaks=seq(1994,2022,4))+
@@ -756,6 +934,7 @@ p1 <- ggplot() +
                      limits=c(0, 450),
                      breaks = seq(0,450, 50), 
                      sec.axis = sec_axis(~.*15, name = "Total Casualties"))
+p1
 ```
 
 **10 year averages CH4 and Tornado Outbreaks**
@@ -766,7 +945,7 @@ p2 <- ggplot()+
            fill ="grey40", 
            stat = "identity",
            linewidth = 1)+
-  geom_line(data = GHG,
+  geom_line(data = BigDays.sfdfT,
             aes(x = Year, y = CH4_10year), 
             color="purple3", 
             stat = "identity",
@@ -779,7 +958,7 @@ p2 <- ggplot()+
          axis.title.x = element_text(size = 16),
          axis.title.y.right = element_text(size = 16, color = "black"),
          axis.title.y.left = element_text(size = 16, color = "purple3")) +
-  ylab(expression("Methane Emissions (in ppb)")) +
+  ylab(expression("Methane (in ppb)")) +
   scale_x_continuous(expand = c(0,0),
                      limits=c(1993,2023), 
                      breaks=seq(1994,2022,4))+
@@ -787,17 +966,82 @@ p2 <- ggplot()+
                      limits=c(0, 2000),
                      breaks = seq(0,2000, 500), 
                      sec.axis = sec_axis(~.*3.5, name = "Total Casualties")) 
+p2
+```
+
+**10 year averages N2O and Tornado Outbreaks**
+```{r}
+p4 <- ggplot()+
+  geom_bar(data = Torn,
+           aes(x = Year, y = Tot_Cas/15), 
+           fill ="grey40", 
+           stat = "identity",
+           linewidth = 1)+
+  geom_line(data = BigDays.sfdfT,
+            aes(x = Year, y = N2O_10year), 
+            color="deeppink", 
+            stat = "identity",
+            linewidth = 1.5) +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, 
+                                 hjust=1, 
+                                 size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y.right = element_text(size = 16, color = "black"),
+         axis.title.y.left = element_text(size = 20, color = "deeppink")) +
+  ylab(expression("Nitrous Oxide (in ppb)")) +
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1993,2023), 
+                     breaks=seq(1994,2022,4))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 500),
+                     breaks = seq(0,500, 100), 
+                     sec.axis = sec_axis(~.*15, name = "Total Casualties")) 
+p4
+```
+
+**10 year averages SF6 and Tornado Outbreaks**
+```{r}
+p3 <- ggplot()+
+  geom_bar(data = Torn,
+           aes(x = Year, y = Tot_Cas/600), 
+           fill ="grey40", 
+           stat = "identity",
+           linewidth = 1)+
+  geom_line(data = BigDays.sfdfT,
+            aes(x = Year, y = SF6_10year), 
+            color="red2", 
+            stat = "identity",
+            linewidth = 1.5) +
+  theme_bw()+
+  theme(axis.text.x=element_text(angle=45, 
+                                 hjust=1, 
+                                 size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y.right = element_text(size = 16, color = "black"),
+         axis.title.y.left = element_text(size = 16, color = "red2")) +
+  ylab(expression("Sulfar Hexafluoride (in ppt)")) +
+  scale_x_continuous(expand = c(0,0),
+                     limits=c(1993,2023), 
+                     breaks=seq(1994,2022,4))+
+  scale_y_continuous(expand = c(0, 0), 
+                     limits=c(0, 10),
+                     breaks = seq(0,10, 1), 
+                     sec.axis = sec_axis(~.*600, name = "Total Casualties")) 
+p3
 ```
 
 **10 year averages O3 and Tornado Outbreaks**
 ```{r}
-p3 <- ggplot()+
+p5 <- ggplot()+
   geom_bar(data = Torn, 
            aes(x=Year, y=Tot_Cas/50), 
            fill="grey40",
            stat ="identity",
            linewidth = 1)+
-  geom_line(data =GHG,
+  geom_line(data =BigDays.sfdfT,
             aes(x = Year, y = O3_10year), 
             color = "goldenrod3", 
             stat = "identity",
@@ -810,7 +1054,7 @@ p3 <- ggplot()+
          axis.title.x = element_text(size = 16),
          axis.title.y.right = element_text(size = 16, color = "black"),
          axis.title.y.left = element_text(size = 16, color = "goldenrod3")) +
-  ylab(expression("Ozone Emissions (in DU)"))+
+  ylab(expression("Ozone (in DU)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1993,2023), 
                      breaks=seq(1994,2022,4))+
@@ -822,13 +1066,13 @@ p3 <- ggplot()+
 
 **10 year averages AGGI and Tornado Outbreaks**
 ```{r}
-p4 <- ggplot()+
+p6 <- ggplot()+
   geom_bar(data=Torn,
            aes(x=Year, y=Tot_Cas/5000), 
            stat = "identity",
            fill="grey40", 
            linewidth=1)+
-  geom_line(data = GHG, 
+  geom_line(data = BigDays.sfdfT, 
             aes(x = Year, y = AGGI_10year), 
             stat = "identity",
             color = "green4", 
@@ -848,13 +1092,98 @@ p4 <- ggplot()+
   scale_y_continuous(expand = c(0, 0), 
                      limits=c(0, 1.5), 
                      breaks = seq(0,1.5,.2), 
-                     sec.axis = sec_axis(~.*5000, name = "Number of Clusters")) 
+                     sec.axis = sec_axis(~.*5000, name = "Total Casualties")) 
 ```
 
 ```{r}
-grid.arrange(p1, p2, p3, p4, 
-             nrow=2,
+grid.arrange(p1, p2, p3, p4, p5, p6,
+             nrow=3,
              ncol=2, 
-             top = textGrob("Decadal Trends in GHG Emissions and Total Casualties", 
+             top = textGrob(" ", 
                             gp=gpar(fontsize = 20)))
 ```
+FIG_DecTrends2
+
+```{r}
+max(BigDays.sfdfT$CO2_1year)
+min(BigDays.sfdfT$CO2_1year)
+max(BigDays.sfdfT$CO2_5year)
+min(BigDays.sfdfT$CO2_5year)
+max(BigDays.sfdfT$CO2_10year)
+min(BigDays.sfdfT$CO2_10year)
+
+max(BigDays.sfdfT$CH4_1year)
+min(BigDays.sfdfT$CH4_1year)
+max(BigDays.sfdfT$CH4_5year)
+min(BigDays.sfdfT$CH4_5year)
+max(BigDays.sfdfT$CH4_10year)
+min(BigDays.sfdfT$CH4_10year)
+
+max(BigDays.sfdfT$SF6_1year)
+min(BigDays.sfdfT$SF6_1year)
+max(BigDays.sfdfT$SF6_5year)
+min(BigDays.sfdfT$SF6_5year)
+max(BigDays.sfdfT$SF6_10year)
+min(BigDays.sfdfT$SF6_10year)
+
+max(BigDays.sfdfT$N2O_1year)
+min(BigDays.sfdfT$N2O_1year)
+max(BigDays.sfdfT$N2O_5year)
+min(BigDays.sfdfT$N2O_5year)
+max(BigDays.sfdfT$N2O_10year)
+min(BigDays.sfdfT$N2O_10year)
+
+max(BigDays.sfdfT$O3_1year)
+min(BigDays.sfdfT$O3_1year)
+max(BigDays.sfdfT$O3_5year)
+min(BigDays.sfdfT$O3_5year)
+max(BigDays.sfdfT$O3_10year)
+min(BigDays.sfdfT$O3_10year)
+
+max(BigDays.sfdfT$AGGI_1year)
+min(BigDays.sfdfT$AGGI_1year)
+max(BigDays.sfdfT$AGGI_5year)
+min(BigDays.sfdfT$AGGI_5year)
+max(BigDays.sfdfT$AGGI_10year)
+min(BigDays.sfdfT$AGGI_10year)
+```
+
+
+
+
+```{r}
+install.packages("metR")
+library(metR)
+```
+
+```{r}
+library(ncdf4)
+test = nc_open(filename = "/Volumes/R1 Dr. Searcy/New folder/ta_6hrLev_CNRM-CM6-1_historical_r1i1p1f2_gr_198001010600-198007010000.nc")
+
+names(test$var)
+#extent(c(-125, -67, 24, 50))
+
+LatIdx = which(test$dim$lat$vals > 24 & test$dim$lat$vals < 50)
+LonIdx = which(test$dim$lon$vals > 235 & test$dim$lon$vals < 293)
+myvariable <- ncvar_get(test, test$var$ta)[LonIdx, LatIdx]
+```
+
+```{r}
+library(raster)
+library(ncdf4)
+
+fname = "/Volumes/R1 Dr. Searcy/New folder/ta_6hrLev_CNRM-CM6-1_historical_r1i1p1f2_gr_198001010600-198007010000.nc"
+
+#load the raster brick file. 
+avgTemp80 <- brick(fname)
+avgTemp80
+
+#contiguous United States Extent---matches the population
+  ext = raster::extent(c(235, 293, 24, 50))
+#temperatures are in Kelvin
+  #multiple layers for every day try ta_80$
+  ta_80 = crop(avgTemp80, ext)
+  
+  plot(ta_80[[1]])
+```
+
