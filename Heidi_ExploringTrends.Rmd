@@ -52,14 +52,6 @@ cas<- RColorBrewer::brewer.pal(9,"Blues")
 cas<- cas[-c(1:3)]
 ```
 
-#################
-## Motivation  ##
-#################
-
-```{r}
-#Using the GHG and Total Outbreak Chart created later
-```
-
 ########################
 ## SPC Tornado Data ##
 ########################
@@ -220,6 +212,143 @@ tm_shape(Junecent,
              col="black", 
              shape=24)
 ```
+
+#########################
+## Big Days Example  ##
+#########################
+```{r}
+BG<-BigDays.sfdfT%>%
+  dplyr::filter(ID=="200612293399")
+
+BGcent <-BigDayCentroids.df%>%
+  dplyr::filter(ID=="200612293399")
+
+BGTorns <- BigDayTornadoes%>%
+  dplyr::filter(ID=="200612293399") 
+
+```
+
+**Plotting Dec 29, 2006 Big Day**
+```{r}
+#Creating Map Projection
+tm_shape(stateBorders,
+          projection = merc)+
+  
+  #Formatting Borders
+  tm_borders(col ="gray", 
+             alpha = 1)+
+  
+  #Compass and Scale Bar Formatting
+  tm_compass(text.size = 0.5, 
+             lwd = 2, 
+             color.dark = "gray",
+             position = c(0.9,0.1))+
+  tm_scale_bar(width = 0.2, 
+               text.size = 1, 
+               lwd = 2,  
+               color.dark = "gray",
+               position =c(0.68,0.01))+
+  
+  #Formatting Plot 
+  tm_layout(legend.position = c(0.01,0),
+            legend.text.size = 0.9,
+            legend.title.size = 1.2,
+            attr.position=c("right","bottom"), 
+            inner.margins = c(0.3,0.2,0.3,0.2), 
+            title="Big Day: December 29, 2006", 
+            title.position = c(0.40, 0.95))+
+  
+#Creating Polygons for Clusters
+tm_shape(BG, 
+         is.master = TRUE, 
+         projection = merc)+
+  
+  #Formatting Polygons
+  tm_polygons(alpha = 0, 
+              border.col = "black", 
+              lwd = 1.5)+
+
+#Plotting Individual Tornadoes
+tm_shape(BGTorns, 
+         projection = merc )+
+  
+  #Formatting Tornado Bubbles
+  tm_bubbles(size = 0.3,
+             border.lwd=NA, 
+             palette = cr, 
+             col="mag",
+             breaks=seq(0,6,by=1),
+             labels=c("F0", "F1","F2", "F3", "F4", "F5"),
+             title.col="Magntiude")+
+  
+  
+#Plotting Centroids
+tm_shape(BGcent,
+         is.master=TRUE,
+         projection = merc)+
+  
+  #Formatting Centroids
+  tm_symbols(size = 1.25, 
+             col="black", 
+             shape=24)
+```
+
+**Redoing plot to new method in upadted file***
+```{r}
+BG<-BigDays.sfdfT%>%
+  dplyr::filter(ID=="200612293399")
+
+BGcent <-BigDayCentroids.df%>%
+  dplyr::filter(ID=="200612293399")
+
+BGTorns <- BigDayTornadoes%>%
+  dplyr::filter(ID=="200612293399") 
+
+```
+
+```{r}
+tm_shape(stateBorders, 
+         projection = merc) +
+  tm_borders(col ="gray70", 
+             alpha = 1) +
+  tm_compass(text.size = 1.25, size = 3,
+             lwd = 2, 
+             color.dark = "gray70") +
+  tm_scale_bar(width = .2, 
+               text.size = 1.25, 
+               lwd = 1.75,  
+               color.dark = "gray70") +
+  tm_layout(attr.position = c("right","bottom"), 
+            inner.margins = c(.1, .05, .1, .05)) +
+tm_shape(BG, 
+         is.master = TRUE, 
+         projection = merc) + 
+  tm_polygons(alpha = 0, 
+              border.col = "black", 
+              lwd = 1.5) +
+tm_shape(BGTorns,
+         projection = merc) +
+  tm_bubbles(alpha = 0.7,
+             size = 1, 
+             col="mag", 
+             breaks=seq(0,6,by=1),
+             border.alpha = 0,
+             palette = cr,
+             labels =c("F0", "F1","F2", "F3", "F4", "F5"),
+             title.col="Magntiude")+
+  tm_layout(title="Big Day: December 29, 2006", 
+            title.position = c("center", "top"), 
+            title.size = 1.75,
+            legend.show = FALSE) +
+tm_shape(BGcent,
+         is.master=TRUE,
+         projection = merc) +
+  tm_symbols(size = 1.25, 
+             col="black", 
+             shape=24)
+  
+```
+
 
 #########################
 ## Out. County Density ##
