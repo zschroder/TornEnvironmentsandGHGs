@@ -75,7 +75,7 @@ tm_shape(Florida) +
              border.alpha = 0,
              palette = cr,
             labels=c("EF0", "EF1","EF2", "EF3", "EF4"),
-            title.col="Magntiude") +
+            title.col="Magnitude") +
   tm_compass(text.size = 1.5, 
              lwd = 2, 
              color.dark = "gray") +
@@ -160,6 +160,64 @@ tm_shape(Jun04cent) +
              shape=24)
 ```
 `FIG_MultiClusDay`
+
+Grouping Total Number of Outbreaks per Year
+```{r}
+Totout_mon <- BigDays.sfdfT%>% 
+  group_by(Month)%>%
+  summarize(Totout_Monthly = n())
+
+DJF<-sum(Totout_mon$Totout_Monthly[12],Totout_mon$Totout_Monthly[1],Totout_mon$Totout_Monthly[2])
+MAM<-sum(Totout_mon$Totout_Monthly[3],Totout_mon$Totout_Monthly[4],Totout_mon$Totout_Monthly[5])
+JJA<-sum(Totout_mon$Totout_Monthly[6],Totout_mon$Totout_Monthly[7],Totout_mon$Totout_Monthly[8])
+SON<-sum(Totout_mon$Totout_Monthly[9],Totout_mon$Totout_Monthly[10],Totout_mon$Totout_Monthly[11])
+Seasons <- data.frame(seasons =c("DJF", "MAM", "JJA","SON"))
+Seasons$Total_Clusters<- c(DJF, MAM, JJA, SON)
+
+Seasons
+```
+
+Graphing Total Outbreaks per Year
+```{r}
+Seasons$seasons <- factor(Seasons$seasons, levels = Seasons$seasons)
+
+#Plotting Outbreaks
+ggplot(Seasons,
+       aes(x=seasons, y=Total_Clusters))+
+  
+  #Line Graph
+  geom_bar(stat="identity", 
+            fill="red3", 
+            linewidth=1)+
+  
+  #Creating Linear Regression Line
+  stat_smooth(method = "lm", 
+              formula = y~x, 
+              geom="smooth", 
+              color="black", 
+              linewidth=1)+
+  
+  #Plot Formatting
+  #ggtitle("Total Clusters Per Season")+
+  theme_bw()+
+  theme(plot.title=element_text(size = 18, hjust=0.5), 
+        plot.margin=margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x=element_text(size = 14, angle=45, hjust=1),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16))+
+  
+  #Axes Formatting
+  xlab("Season")+
+  ylab("Total Clusters")+
+  #scale_x_continuous(expand = c(0,0),
+                  #   limits=c(1,12),
+                   #  breaks=seq(1,12,1))+
+  scale_y_continuous(expand = c(0,0),
+                     limits=c(0,500), 
+                     breaks=seq(0,500,50))
+```
+`FIG_ClusbySeason`
 
 ##################
 ## GHG GML Data ##
