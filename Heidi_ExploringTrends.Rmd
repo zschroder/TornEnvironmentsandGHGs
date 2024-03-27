@@ -238,7 +238,7 @@ tm_shape(stateBorders,
   tm_compass(text.size = 1.25, size = 3,
              lwd = 2, 
              color.dark = "gray70") +
-  tm_scale_bar(width = .2, 
+  tm_scale_bar(width = .25, 
                text.size = 1.25, 
                lwd = 1.75,  
                color.dark = "gray70") +
@@ -253,18 +253,21 @@ tm_shape(BG,
 tm_shape(BGTorns,
          projection = merc) +
   tm_bubbles(alpha = 0.7,
-             size = 1, 
+             size = 0.8, 
              col="mag", 
-             breaks=seq(0,3,by=1),
+             breaks = seq(0,3,by=1),
              border.alpha = 0,
              palette = cr,
-             labels =c("F0", "F1","F2"),
-             title.col="Magntiude")+
-  tm_layout(title= "December 15, 2021\n 125 tornadoes", 
+             labels = c("F0", "F1","F2"),
+             title.col="Magnitude")+
+  tm_layout(title= "December 15, 2021\n    125 tornadoes", 
             title.position = c("center", "top"), 
             title.size = 1.75,
             legend.show = TRUE,
-            legend.position = c("left", "bottom")) +
+            legend.position = c("left", "bottom"), 
+            legend.height = 2,
+            legend.text.size = 1.25, 
+            legend.title.size = 1.5,) +
 tm_shape(BGcent,
          is.master=TRUE,
          projection = merc) +
