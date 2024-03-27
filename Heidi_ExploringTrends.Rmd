@@ -59,8 +59,12 @@ cas<- cas[-c(1:3)]
 **Tornadoes for 2008**
 ```{r}
 #Pulling Tornado Data only for 2008
-OK2008<-All_Tornadoes%>%
-  dplyr::filter(st=="OK")
+FL<-All_Tornadoes%>%
+  dplyr::filter(st=="FL")
+
+FL%>%
+  group_by(total = n())
+
 
 #filter state borders for only Oklahoma
 OKL<-stateBorders%>%
@@ -641,10 +645,10 @@ DJF<-sum(Totout_mon$Totout_Monthly[12],Totout_mon$Totout_Monthly[1],Totout_mon$T
 MAM<-sum(Totout_mon$Totout_Monthly[3],Totout_mon$Totout_Monthly[4],Totout_mon$Totout_Monthly[5])
 JJA<-sum(Totout_mon$Totout_Monthly[6],Totout_mon$Totout_Monthly[7],Totout_mon$Totout_Monthly[8])
 SON<-sum(Totout_mon$Totout_Monthly[9],Totout_mon$Totout_Monthly[10],Totout_mon$Totout_Monthly[11])
-Seasons <- data.frame(seasons =c("DJF", "MAM", "JJA","SON"))
-Seasons$Total_Clusters<- c(DJF, MAM, JJA, SON)
+Seasons <- data.frame(seasons =c("DJF", "MAM", "JJA","SON"), Total_Clusters = c(DJF, MAM, JJA, SON))
 
 Seasons
+
 ```
 
 Graphing Total Outbreaks per Year
@@ -675,9 +679,6 @@ ggplot(Seasons,
   #Axes Formatting
   xlab("Season")+
   ylab("Total Clusters")+
-  #scale_x_continuous(expand = c(0,0),
-                  #   limits=c(1,12),
-                   #  breaks=seq(1,12,1))+
   scale_y_continuous(expand = c(0,0),
                      limits=c(0,500), 
                      breaks=seq(0,500,50))
