@@ -59,12 +59,8 @@ cas<- cas[-c(1:3)]
 **Tornadoes for 2008**
 ```{r}
 #Pulling Tornado Data only for 2008
-FL<-All_Tornadoes%>%
-  dplyr::filter(st=="FL")
-
-FL%>%
-  group_by(total = n())
-
+T_2008<-All_Tornadoes%>%
+  dplyr::filter(Year == "2008")
 
 #filter state borders for only Oklahoma
 OKL<-stateBorders%>%
@@ -575,8 +571,6 @@ JJA<-sum(Totout_mon$Totout_Monthly[6],Totout_mon$Totout_Monthly[7],Totout_mon$To
 SON<-sum(Totout_mon$Totout_Monthly[9],Totout_mon$Totout_Monthly[10],Totout_mon$Totout_Monthly[11])
 Seasons <- data.frame(seasons =c("DJF", "MAM", "JJA","SON"), Total_Clusters = c(DJF, MAM, JJA, SON))
 
-Seasons
-
 ```
 
 Graphing Total Outbreaks per Year
@@ -611,7 +605,6 @@ ggplot(Seasons,
                      limits=c(0,500), 
                      breaks=seq(0,500,50))
 ```
-`FIG_ClusbySeason`
 
 ###############################
 ## Annual Change in Out. Cas.##
@@ -885,24 +878,30 @@ grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2, top ="10-Year Averages of G
 ############################
 ## Cor. Matrix GHG & Out. ##
 ############################
+```{r}
+TotClus<-BigDays.sfdfT%>%
+  group_by(Year)%>%
+  summarise(TotClusYr = n())
+
+```
+
 
 **Annual Correlation Matrix**
 ```{r}
 AnnualYearCor <- BigDays.sfdfT%>%
 
   #Selecting Variables
-  dplyr::select(nT, GroupDayCas,GroupDayFat,
-                CO2_1year,
+  dplyr::select(CO2_1year,
                 CH4_1year, 
                 O3_1year,
                 AGGI_1year)
 
 #Formatting Column names
-colnames(AnnualYearCor) = c("Tot.Torn.","Tot.Cas.","Tot.Fat.", "CO2", "CH4", "O3", "AGGI")
+##colnames(AnnualYearCor) = c("Tot.Torn.","Tot.Cas.","Tot.Fat.", "CO2", "CH4", "O3", "AGGI")
 
 #creating data frame 
-AnnualYearCor <- as.data.frame(AnnualYearCor)
-AnnualYearCor <- AnnualYearCor[1:7]
+AnnualYearCor <-data.frame(TotClus,TotCas_yr, AnnualYearCor)
+#AnnualYearCor <- AnnualYearCor[1:6]
 
 #running correlation test on variables
 cordat <- cor(AnnualYearCor)
@@ -916,7 +915,7 @@ corrplot(cordat, method ="number", type = "lower", tl.col = "black")
 TenYearCor <- BigDays.sfdfT%>%
   
   #selecting variables
-  dplyr::select(nT, GroupDayCas,GroupDayFat,
+  dplyr::select(TotCas_yr, GroupDayCas,GroupDayFat,
                 CO2_10year,
                 CH4_10year, 
                 O3_10year,
@@ -933,7 +932,36 @@ TenYearCor <- TenYearCor[1:7]
 cordat <- cor(TenYearCor)
 
 #formatting matrix
-corrplot(cordat, method ="circle",type= "full", tl.col = "black")
+corrplot(cordat, method ="number",type= "full", tl.col = "black")
+```
+
+############################
+##Significance testing ##
+############################
+```{r}
+GHG<-BigDays.sfdfT%>%
+  dplyr::select(Year, CO2_1year, CH4_1year, O3_1year, AGGI_1year, 
+                CO2_10year,CH4_10year, O3_10year, AGGI_10year)
+
+Torn<-BigDays.sfdfT%>%
+  group_by(Year)%>%
+  summarise(TotClus_yr=n(),
+            TotCas_yr = sum(GroupDayCas))
+
+#Total Clusters
+t.test(Torn$TotClus_yr, BigDays.sfdfT$CO2_10year)
+t.test(Torn$TotClus_yr, BigDays.sfdfT$CH4_10year)
+t.test(Torn$TotClus_yr, BigDays.sfdfT$O3_10year)
+t.test(Torn$TotClus_yr, BigDays.sfdfT$AGGI_10year)
+
+
+#Total Casualties
+t.test(Torn$TotCas_yr, BigDays.sfdfT$CO2_10year)
+t.test(Torn$TotCas_yr, BigDays.sfdfT$CH4_10year)
+t.test(Torn$TotCas_yr, BigDays.sfdfT$O3_10year)
+t.test(Torn$TotCas_yr, BigDays.sfdfT$AGGI_10year)
+
+
 ```
 
 ############################
