@@ -171,9 +171,9 @@ tm_shape(BigDays.sfdfT) +
 tm_shape(counties.sf) +
    tm_fill("GroupDayCount",
             title = "Total Outbreaks",
-            palette = "Reds", breaks = c(0, 20, 40, 60, 80, 100, 120)) +
-  tm_borders(col = "gray", alpha = .3) +
-  tm_compass(size = 5, position = c("left", "bottom")) + tm_scale_bar(width = 0.4, size = 1.4) +
+            palette = "Purples", breaks = c(0, 20, 40, 60, 80, 100, 120)) +
+  tm_borders(col = "gray", alpha = .0) +
+  tm_compass(size = 5, position = c("left", "bottom"), color.dark = "gray70") + tm_scale_bar(width = 0.4, size = 1.4, color.dark = "gray70") +
   tm_layout(legend.position = c("right", "bottom"),
                    attr.position = c("left", "bottom"),
                    legend.frame = FALSE,
@@ -495,22 +495,24 @@ tmap_arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 Step 1: Load in the Greenhouse Gas Data
 ```{r}
 GHG_Emissions <- read.csv("AnnualAverages_GHG.csv")
+GHG_Emissions$Year <- GHG_Emissions$ï..year
 ```
 
 The colors for GHG values in all of the following plots are:
-CO2: "red"
-CH4: "green3"
-O3: "purple3"
-AGGI: "yellow3"
+CO2: "blue"
+CH4: "purple3"
+O3: "goldenrod"
+"red4"
+"deeppink"
+AGGI: "green4"
 
 Step 2: Plot line graphs of the Emission Data. Emission values on the `y` axis and year on the `x` axis. 
 
 Carbon Dioxide: 
 ```{r}
 CO2_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = year, y = CO2_ppm), 
-            color = "red3",
-            linewidth = 2) +
+  geom_line(aes(x = Year, y = CO2_ppm), 
+            color = "blue", lwd = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Carbon Dioxide Emissions (ppm)") +
@@ -521,8 +523,8 @@ CO2_plot <- ggplot(GHG_Emissions) +
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1959, 2023), 
-                     breaks = seq(1960, 2023, 10)) + 
+                     limits=c(1979, 2023), 
+                     breaks = seq(1980, 2023, 5)) + 
   scale_y_continuous(expand = c(0, 0), 
                      limits=c(300, 430), 
                      breaks = seq(300, 425, 25)) 
@@ -533,9 +535,9 @@ CO2_plot
 Methane: 
 ```{r}
 CH4_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = year, y = CH4_ppb), 
-            color = "green3",
-            linewidth = 2) +
+  geom_line(aes(x = Year, y = CH4_ppb), 
+            color = "purple3",
+            lwd = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Methane Emissions (ppb)") +
@@ -546,11 +548,11 @@ CH4_plot <- ggplot(GHG_Emissions) +
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1960, 2023), 
-                     breaks = seq(1960, 2023, 10)) + 
+                     limits=c(1979, 2023), 
+                     breaks = seq(1980, 2023, 5)) + 
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(1600, 2010), 
-                     breaks = seq(1600, 2000, 50)) 
+                     limits=c(1550, 2010), 
+                     breaks = seq(1550, 2000, 50)) 
 
 CH4_plot
 ```
@@ -558,9 +560,9 @@ CH4_plot
 Ozone:
 ```{r}
 O3_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = year, y = O3_DU), 
-            color = "purple3",
-            linewidth = 2) +
+  geom_line(aes(x = Year, y = O3_DU), 
+            color = "goldenrod",
+            lwd = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Ozone Emissions (DU)") +
@@ -571,8 +573,8 @@ O3_plot <- ggplot(GHG_Emissions) +
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1960, 2023), 
-                     breaks = seq(1960, 2023, 10)) + 
+                     limits=c(1979, 2023), 
+                     breaks = seq(1980, 2023, 5)) + 
   scale_y_continuous(expand = c(0, 0), 
                      limits=c(80, 245), 
                      breaks = seq(80, 240, 20)) 
@@ -580,12 +582,62 @@ O3_plot <- ggplot(GHG_Emissions) +
 O3_plot
 ```
 
+```{r}
+p3 <- ggplot(GHG_Emissions, 
+      aes(x= Year, y=SF6_ppt))+
+   geom_line(stat="identity", 
+             color = "red2",
+             lwd = 2)+
+   theme_bw() +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
+   ylab(expression("Sulfur Hexafluoride (in ppt)")) +
+   xlab("Year") +
+   scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1979, 2023), 
+                     breaks = seq(1980, 2023, 5)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits = c(0, 12), 
+                     breaks = seq(0, 12, 2)) 
+
+p3
+```
+
+```{r}
+p4 <- ggplot(GHG_Emissions, 
+      aes(x= Year, y=N2O_ppb))+
+   geom_line(stat="identity", 
+             color = "deeppink",
+             lwd = 2)+
+   theme_bw() +
+   theme(axis.text.x = element_text(angle=45, 
+                                    hjust=1, 
+                                    size = 14),
+         axis.text.y = element_text(size = 14), 
+         axis.title.x = element_text(size = 16),
+         axis.title.y = element_text(size = 16)) +
+   ylab(expression("Nitrous Oxide (in ppb)")) +
+   xlab("Year") +
+   scale_x_continuous(expand = c(0, 0), 
+                     limits=c(1979, 2023), 
+                     breaks = seq(1980, 2023, 5)) + 
+   scale_y_continuous(expand = c(0,0), 
+                     limits = c(300, 340), 
+                     breaks = seq(300, 340, 5)) 
+
+p4
+```
+
 Annual Greenhouse Gas Index:
 ```{r}
 AGGI_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = year, y = AGGI), 
-            color = "yellow3",
-            linewidth = 2) +
+  geom_line(aes(x = Year, y = AGGI), 
+            color = "green4",
+            lwd = 2) +
   theme_bw() +
   xlab("Year") +
   ylab("Annual Greenhouse Gas Index") +
@@ -596,8 +648,8 @@ AGGI_plot <- ggplot(GHG_Emissions) +
          axis.title.x = element_text(size = 16),
          axis.title.y = element_text(size = 16)) +
   scale_x_continuous(expand = c(0, 0), 
-                     limits=c(1960, 2023), 
-                     breaks = seq(1960, 2023, 10)) + 
+                     limits=c(1979, 2023), 
+                     breaks = seq(1980, 2023, 5)) + 
   scale_y_continuous(expand = c(0, 0), 
                      limits=c(0.6, 1.63), 
                      breaks = seq(0.7, 1.6, 0.1)) 
@@ -607,7 +659,7 @@ AGGI_plot
 
 Step 3: Make the 2x2 grid panel of the emission values.
 ```{r}
-grid.arrange(CO2_plot, CH4_plot, O3_plot, AGGI_plot, nrow = 2)
+grid.arrange(CO2_plot, CH4_plot, p3, p4, O3_plot, AGGI_plot, nrow = 2)
 ```
 `Fig_GHGEmissionsData`
 
@@ -635,11 +687,11 @@ p1 <- ggplot(x) +
   geom_bar(aes(x = Year, y = max_CAPE),
            stat = "identity", 
            color = "white",
-           fill = "blue",
-           linewidth = 1) +
+           fill = "grey70",
+           lwd = 1) +
   geom_line(aes(x = Year, y = CO2*7000/500),
             stat = "identity",
-            color = "red",
+            color = "blue",
             size = 2) +
   theme_bw() +
   xlab("Year") +
@@ -792,3 +844,323 @@ corrplot(cordat,
          col.lim = c(-1,1))
 ```
 
+The Models:
+
+Distributions of the response variables: 
+
+`CAPE`
+```{r}
+plot_CAPE <- ggplot(BigDays.sfdfT, aes(maxCAPE)) + 
+  geom_histogram(boundary = 50, 
+                 bins = 43, 
+                 alpha = 0.9, 
+                 color = "white", 
+                 fill = "Grey40",
+                 size = 0.1) +
+  scale_x_continuous(expand = c(0,0), limits = c(0,7000)) +
+  #scale_x_log10() + 
+  xlab(expression(paste("Maximum CAPE [J ", kg^-1, "]"))) +
+  scale_y_continuous(expand = c(0,0), breaks = c(0, 10,20,30,40,50, 60, 70), labels = c("0", "10", "20", "30", "40", "50", "60", "70"), limits = c(0, 70)) +
+  ylab("Number of Clusters") + 
+  ggtitle("C") +
+  theme_bw() +
+  theme(text = element_text(size=12), plot.background = element_rect(color = "grey40"), panel.border = element_rect(color = "white"), plot.margin=unit(c(0.5, 0.5, 0.5, 0.5),"cm"))
+```
+
+`Deep Layer Shear`
+```{r}
+plot_DLBS <- ggplot(BigDays.sfdfT, aes(maxBS_deep)) + 
+  geom_histogram(boundary = 50, 
+                 bins = 43, 
+                 alpha = 0.9, 
+                 color = "white", 
+                 fill = "Grey40",
+                 size = 0.1) +
+  scale_x_continuous(expand = c(0,0), limits = c(0,50)) +
+  #scale_x_log10() + 
+  xlab(expression(paste("Maximum Deep Layer Bulk Shear [m ", s^-1, "]"))) +
+  scale_y_continuous(expand = c(0,0), breaks = c(0, 10,20,30,40,50, 60, 70), labels = c("0", "10", "20", "30", "40", "50", "60", "70"), limits = c(0, 70)) +
+  ylab("Number of Clusters") + 
+  ggtitle("A") +
+  theme_bw() +
+  theme(text = element_text(size=12), plot.background = element_rect(color = "grey40"), panel.border = element_rect(color = "white"), plot.margin=unit(c(0.5, 0.5, 0.5, 0.5),"cm"))
+
+plot_DLBS
+```
+
+`Shallow Layer Shear`
+```{r}
+plot_SLBS <- ggplot(BigDays.sfdfT, aes(maxBS_shallow)) + 
+  geom_histogram(boundary = 50, 
+                 bins = 43, 
+                 alpha = 0.9, 
+                 color = "white", 
+                 fill = "Grey40",
+                 size = 0.1) +
+  scale_x_continuous(expand = c(0,0), limits = c(0,40)) +
+  #scale_x_log10() + 
+  xlab(expression(paste("Maximum Shallow Layer Bulk Shear [m ", s^-1, "]"))) +
+  scale_y_continuous(expand = c(0,0), breaks = c(0, 10,20,30,40,50, 60, 70), labels = c("0", "10", "20", "30", "40", "50", "60", "70"), limits = c(0, 70)) +
+  ylab("Number of Clusters") + 
+  ggtitle("B") +
+  theme_bw() +
+  theme(text = element_text(size=12), plot.background = element_rect(color = "grey40"), panel.border = element_rect(color = "white"), plot.margin=unit(c(0.5, 0.5, 0.5, 0.5),"cm"))
+
+plot_SLBS
+```
+
+```{r}
+library(corrplot)
+library(ggpubr)
+ggarrange(plot_DLBS, plot_SLBS, plot_CAPE, ncol = 1, nrow = 3)
+```
+
+Does collinearity exist between the explanatory variables?:
+
+*What is the correlation between the GHG variables? *
+```{r}
+GHGVars <- data.frame(CO2 =  BigDays.sfdfT$CO2_10year, 
+                       CH4 = BigDays.sfdfT$CH4_10year, 
+                       O3 = BigDays.sfdfT$O3_10year, 
+                       SF6 = BigDays.sfdfT$SF6_10year, 
+                       N2O = BigDays.sfdfT$N2O_10year, 
+                       AGGI = BigDays.sfdfT$AGGI_10year)
+```
+
+*Create a figure to show correlations between the climate variables. *
+```{r}
+corrplot.mixed(cor(GHGVars), tl.col="black", lower.col="black", number.cex = 1, tl.cex = 1)
+```
+
+```{r}
+DLBS_env <- data.frame(CO2 =  BigDays.sfdfT$CO2_10year, 
+                       O3 = BigDays.sfdfT$O3_10year, 
+                       Lat = BigDays.sfdfT$Lat, 
+                       Lon = BigDays.sfdfT$Lon, 
+                       DLBS = BigDays.sfdfT$maxBS_deep)
+
+
+corrplot.mixed(cor(DLBS_env), tl.col="black", lower.col="black", number.cex = 1, tl.cex = 1)
+```
+
+Initial Model:
+```{r}
+DLBS_m1 <- lm(maxBS_deep ~ CO2_1year + O3_10year + Lat + Lon + Year, data = BigDays.sfdfT)
+summary(DLBS_m1)
+```
+
+Seasonal Trend:
+```{r}
+DLBSByMonth <- BigDays.sfdfT %>% 
+  group_by(Mo) %>%
+  summarize(nC = n(),
+            avgDLBS = mean(maxBS_deep)/nC) 
+```
+
+`Make a figure of the Mean DLBS from 1994 to 2020 by month`
+```{r}
+ggplot(DLBSByMonth, aes(x = as.factor(Mo), y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+  scale_x_discrete(labels = month.name) +
+  scale_y_continuous(limits = c(0, NA)) +
+  ylab("Number of Tornado Groups\nWith At Least 10 Tornadoes") + xlab("") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+( p0 <- ggplot(DLBSByMonth, aes(x = Mo, y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+ scale_x_continuous(breaks = seq(1, 12, 1), labels = month.abb) +
+  scale_y_continuous(limits = c(0, 2)) +
+  coord_polar(start =0) +
+  labs(x = "Month", y = expression(paste("Normalized Averages of DLBS [m ", s^-1, "]"))) +
+  #ggtitle("a") +
+  theme_minimal() )
+```
+
+```{r}
+BigDays.sfdfT$Hour_UTC <-  format(as.POSIXct(strptime(BigDays.sfdfT$StartTime_UTC,"%Y-%m-%d %H:%M:%S",tz="")) ,format = "%H")
+```
+
+
+Diurnal Trend:
+```{r}
+DLBSByHour <- BigDays.sfdfT %>% 
+  group_by(Hour_UTC) %>%
+  summarize(nC = n(),
+            avgDLBS = mean(maxBS_deep))
+```
+
+`Make a figure of the total tornadoes from 1994 to 2018 by Hour`
+```{r}
+ggplot(DLBSByHour, aes(x = as.factor(Hour_UTC), y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+  #scale_x_discrete(labels = month.name) +
+  scale_y_continuous(limits = c(0, NA)) +
+  ylab("Number of Tornado Groups\nWith At Least 10 Tornadoes") + xlab("") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+( p1 <- ggplot(DLBSByHour, aes(x = as.factor(Hour_UTC), y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+  #scale_x_discrete(breaks = seq(0, 24, 0.5)) +
+  scale_y_continuous(limits = c(0, 40)) +
+  coord_polar(start =-0.2) +
+  labs(x = "Hour (UTC)", y = expression(paste("Averaged Extremes of DLBS [m ", s^-1, "]"))) +
+  theme_minimal() )
+```
+
+```{r}
+ggarrange(p0, p1)
+```
+
+Annual Trend: 
+```{r}
+DLBSByYear <- BigDays.sfdfT %>% 
+  group_by(Year) %>%
+  summarize(avgDLBS = mean(maxBS_deep)) 
+```
+
+`Make a figure of the total tornadoes from 1994 to 2018 by Year`
+```{r}
+ggplot(DLBSByYear, aes(x = as.factor(Year), y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+  #scale_x_discrete(labels = month.name) +
+  scale_y_continuous(limits = c(0, NA)) +
+  ylab("Number of Tornado Groups\nWith At Least 10 Tornadoes") + xlab("") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+( px <- ggplot(DLBSByYear, aes(x = as.factor(Year), y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+  #scale_x_discrete(breaks = seq(0, 24, 0.5)) +
+  scale_y_continuous(limits = c(0, 40)) +
+  coord_polar(start =-0.2) +
+  labs(x = "Year", y = expression(paste("Averaged Extremes of DLBS [m ", s^-1, "]"))) +
+  theme_minimal() )
+```
+
+```{r}
+#Average Environmental Variable per year as the response variable? 
+test <- BigDays.sfdfT %>%
+  group_by(Year, Month) %>%
+  summarize(avgmaxCAPE = mean(maxCAPE),
+            avgmaxDLBS = mean(maxBS_deep),
+            avgmaxSLBS = mean(maxBS_shallow),
+            CO2_decadal = max(CO2_10year),
+            CO2_annual = max(CO2_1year),
+            CH4_decadal = max(CH4_10year),
+            CH4_annual = max(CH4_1year),
+            O3_decadal = max(O3_10year),
+            O3_annual = max(O3_1year))
+```
+
+
+```{r}
+library(lme4)
+DLBS_m2 <- lmer(maxBS_deep ~ CO2_1year +O3_10year + Lat + Lon + (1|Month), data = BigDays.sfdfT)
+summary(DLBS_m2)
+```
+
+```{r}
+DLBS_m3 <- lmer(maxBS_deep ~ CO2_1year +O3_10year + Lat + Lon + (1|Month), data = BigDays.sfdfT)
+summary(DLBS_m3)
+```
+
+```{r}
+AIC(DLBS_m1, DLBS_m2, DLBS_m3)
+```
+
+*The lowest AIC is the model to choose!*
+```{r}
+DLBS_model <- DLBS_m4
+```
+
+*Check the residuals of model 8 of DLBS.*
+```{r}
+plot(residuals(DLBS_model)) 
+```
+There is no relationship between the residuals.
+
+*Make a plot of the standardized residuals for the DLBS model*
+```{r}
+DLBSmod.df <- fortify.merMod(model=DLBS_model, data = nlme::getData(DLBS_model))
+DLBSmod.df$predDLBS <- predict(DLBS_model)
+
+pa <- ggplot(DLBSmod.df, aes(x = .scresid)) +
+  geom_histogram(binwidth = .5, color = "white", fill = "gray40") +
+  xlab("Standardized Residual") + ylab("Frequency") +
+  ggtitle("A") +
+  theme_minimal() + theme(text = element_text(size=15))
+
+pb <- ggplot(DLBSmod.df, aes(x = .fitted, y = .scresid, color = factor(Mo))) +
+         geom_point(size = 2) +
+        # scale_x_log10() +
+         scale_color_discrete(name = "Month") +
+  xlab(expression(paste("DLBS [m ", s^-1, "]"))) + ylab("Standardized Residual") +
+  ggtitle("B") +
+  theme_minimal() + theme(text = element_text(size=15))
+grid.arrange(pa, pb, ncol = 2)
+```
+Conditional standardized residuals from the linear regression model. (A) Histogram and (B) Residuals as a function of predicted values of DLBS. The pattern in B indicates that predictions for larger values of DLBS are less accurate. 
+
+*How does the model do compared to the actual values? *
+```{r}
+predictDLBS <- predict(DLBS_model)
+BigDays.sfdfT$predDLBS <- predictDLBS
+
+cor.test(BigDays.sfdfT$maxBS_deep, predictDLBS, conf.level = 0.95)
+MuMIn::r.squaredGLMM(DLBS_model)
+library("sjstats")
+r2(DLBS_model)
+```
+This model explains 36% of the variation of DLBS.
+
+*Make a table of the model coefficients. *
+```{r}
+DLBSmod_coefs <- summary(DLBS_model)
+xtable(DLBSmod_coefs$coefficients, digits = 3)
+```
+
+*What are the confidence intervals for the model? *
+```{r}
+confint(DLBS_model)
+```
+
+*Plot the observed vs Predicted values of DLBS*
+```{r}
+BigDays.sfdfT$Month.name <- factor(BigDays.sfdfT$Month, labels = month.name)
+mypalette <- brewer.pal(name = "Blues", n =9)
+mypalette <- mypalette[3:6]
+DLBSobspred <- ggplot() +
+  geom_point(data = BigDays.sfdfT, 
+             aes(x = maxBS_deep, 
+                 y = predDLBS), #col = Month), 
+             color = "#2171B5",
+            # color.palette = "Blues",
+             size = 5, 
+             show.legend = FALSE,  
+             stroke = 0, 
+             alpha = 0.6) +
+  scale_color_brewer(palette = "Blues") +
+  geom_smooth(method = "lm", data = BigDays.sfdfT,
+            aes(x = maxBS_deep, 
+                 y = predDLBS), 
+            color = "Blue", 
+            size = 1.25, 
+            se = FALSE, 
+            fullrange = TRUE) +
+      #scale_colour_continuous(type = "viridis", guide = guide_colorbar(reverse = TRUE)) +
+  #  facet_wrap(~Month.name, ncol = 3, labeller = label_value) +
+
+  geom_abline(slope = 1, 
+              size = 1.25,
+              col = "black") + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 50)) +
+  scale_x_continuous(expand = c(0, 0), limits = c(0, 50)) +
+  ylab(expression(paste("Estimated DLBS [m ", s^-1, "]"))) + 
+      xlab(expression(paste("Observed DLBS [m ", s^-1, "]"))) +
+     theme_bw() + 
+      theme(text = element_text(size=15), strip.background = element_rect(size = 0.5), panel.border=element_rect(colour="black",size=1), panel.background=element_rect(fill="white"), axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+DLBSobspred
+```
