@@ -879,35 +879,13 @@ grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2, top ="10-Year Averages of G
 ## Cor. Matrix GHG & Out. ##
 ############################
 ```{r}
-TotClus<-BigDays.sfdfT%>%
+GHG<-BigDays.sfdfT%>%
+  dplyr::select(Year, CO2_10year,CH4_10year, O3_10year, AGGI_10year)
+
+Torn<-BigDays.sfdfT%>%
   group_by(Year)%>%
-  summarise(TotClusYr = n())
-
-```
-
-
-**Annual Correlation Matrix**
-```{r}
-AnnualYearCor <- BigDays.sfdfT%>%
-
-  #Selecting Variables
-  dplyr::select(CO2_1year,
-                CH4_1year, 
-                O3_1year,
-                AGGI_1year)
-
-#Formatting Column names
-##colnames(AnnualYearCor) = c("Tot.Torn.","Tot.Cas.","Tot.Fat.", "CO2", "CH4", "O3", "AGGI")
-
-#creating data frame 
-AnnualYearCor <-data.frame(TotClus,TotCas_yr, AnnualYearCor)
-#AnnualYearCor <- AnnualYearCor[1:6]
-
-#running correlation test on variables
-cordat <- cor(AnnualYearCor)
-
-#formatting matrix
-corrplot(cordat, method ="number", type = "lower", tl.col = "black")
+  summarise(TotClus_yr=n(),
+            TotCas_yr = sum(GroupDayCas))
 ```
 
 **10-Year Correlation Matrix**
@@ -915,39 +893,30 @@ corrplot(cordat, method ="number", type = "lower", tl.col = "black")
 TenYearCor <- BigDays.sfdfT%>%
   
   #selecting variables
-  dplyr::select(TotCas_yr, GroupDayCas,GroupDayFat,
+  dplyr::select(nT, GroupDayCas, 
                 CO2_10year,
                 CH4_10year, 
                 O3_10year,
                 AGGI_10year)
 
 #creating column names
-colnames(TenYearCor) = c("Total Tornades","Total Casualties","Total Fatalities","CO2", "CH4", "O3", "AGGI")
+colnames(TenYearCor) = c("Total Torn.","Total Cas.","CO2", "CH4", "O3", "AGGI")
 
 #creating data frame
 TenYearCor <- as.data.frame(TenYearCor)
-TenYearCor <- TenYearCor[1:7]
+TenYearCor <- TenYearCor[1:6]
 
 #running correlation test
 cordat <- cor(TenYearCor)
 
 #formatting matrix
-corrplot(cordat, method ="number",type= "full", tl.col = "black")
+corrplot(cordat, method ="number",type= "lower", tl.col = "black")
 ```
 
 ############################
 ##Significance testing ##
 ############################
 ```{r}
-GHG<-BigDays.sfdfT%>%
-  dplyr::select(Year, CO2_1year, CH4_1year, O3_1year, AGGI_1year, 
-                CO2_10year,CH4_10year, O3_10year, AGGI_10year)
-
-Torn<-BigDays.sfdfT%>%
-  group_by(Year)%>%
-  summarise(TotClus_yr=n(),
-            TotCas_yr = sum(GroupDayCas))
-
 #Total Clusters
 t.test(Torn$TotClus_yr, BigDays.sfdfT$CO2_10year)
 t.test(Torn$TotClus_yr, BigDays.sfdfT$CH4_10year)
