@@ -917,14 +917,15 @@ corrplot(cordat, method ="number",type= "lower", tl.col = "black")
 ##Significance testing ##
 ############################
 ```{r}
-#Total Clusters
+
+#Total Clusters and GHG
 t.test(Torn$TotClus_yr, BigDays.sfdfT$CO2_10year)
 t.test(Torn$TotClus_yr, BigDays.sfdfT$CH4_10year)
 t.test(Torn$TotClus_yr, BigDays.sfdfT$O3_10year)
 t.test(Torn$TotClus_yr, BigDays.sfdfT$AGGI_10year)
 
 
-#Total Casualties
+#Total Casualties and GHG
 t.test(Torn$TotCas_yr, BigDays.sfdfT$CO2_10year)
 t.test(Torn$TotCas_yr, BigDays.sfdfT$CH4_10year)
 t.test(Torn$TotCas_yr, BigDays.sfdfT$O3_10year)
