@@ -1278,7 +1278,10 @@ library(terra)
 x <- rast('SSS.nc')
 ```
 
+######################
 Significance Testing
+######################
+
 ```{r}
 dat <- BigDays.sfdfT %>%
   group_by(Year) %>%
@@ -1316,3 +1319,31 @@ cor.test(dat$numCas, dat$CH4_10year, method = "pearson")
 cor.test(dat$numCas, dat$O3_10year, method = "pearson")
 cor.test(dat$numCas, dat$AGGI_10year, method = "pearson")
 ```
+
+```{r}
+cor.test(BigDays.sfdfT$maxCAPE, BigDays.sfdfT$Year, method = "pearson")
+cor.test(BigDays.sfdfT$minCIN, BigDays.sfdfT$Year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_deep, BigDays.sfdfT$Year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$Year, method = "pearson")
+
+cor.test(BigDays.sfdfT$maxCAPE, BigDays.sfdfT$CO2_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxCAPE, BigDays.sfdfT$CH4_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxCAPE, BigDays.sfdfT$O3_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxCAPE, BigDays.sfdfT$AGGI_10year, method = "pearson")
+
+cor.test(BigDays.sfdfT$minCIN, BigDays.sfdfT$CO2_10year, method = "pearson")
+cor.test(BigDays.sfdfT$minCIN, BigDays.sfdfT$CH4_10year, method = "pearson")
+cor.test(BigDays.sfdfT$minCIN, BigDays.sfdfT$O3_10year, method = "pearson")
+cor.test(BigDays.sfdfT$minCIN, BigDays.sfdfT$AGGI_10year, method = "pearson")
+
+cor.test(BigDays.sfdfT$maxBS_deep, BigDays.sfdfT$CO2_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_deep, BigDays.sfdfT$CH4_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_deep, BigDays.sfdfT$O3_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_deep, BigDays.sfdfT$AGGI_10year, method = "pearson")
+
+cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$CO2_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$CH4_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$O3_10year, method = "pearson")
+cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$AGGI_10year, method = "pearson")
+```
+
