@@ -36,11 +36,14 @@ suppressMessages(library(tmap))
 suppressMessages(library(raster))
 suppressMessages(library(ggplot2))
 suppressMessages(library(gridExtra))
+suppressMessages(library(corrplot))
+suppressMessages(library(ggpubr))
+suppressMessages(library(lme4))
 ```
 
 Load the outbreak data for this project: 
 ```{r}
-load("TornadoOutbreaks.RData")
+load("ClusterData.RData")
 ```
 
 Extract the information for the second largest big day (December 15, 2021):
@@ -131,6 +134,11 @@ x <- MakeTab %>%
             numTorns = sum(nT))
 x
 ```
+Cat       NumClus   NumCas    NumTorns
+10 - 29   711       9106      11410
+30 - 59   142       7804      5607
+60 - 89   29        4785      2075
+90+       8         3685      888
 
 ## Tornado Outbreak Density by County: 
 
@@ -495,15 +503,14 @@ tmap_arrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
 Step 1: Load in the Greenhouse Gas Data
 ```{r}
 GHG_Emissions <- read.csv("AnnualAverages_GHG.csv")
-GHG_Emissions$Year <- GHG_Emissions$ï..year
 ```
 
 The colors for GHG values in all of the following plots are:
 CO2: "blue"
 CH4: "purple3"
 O3: "goldenrod"
-"red4"
-"deeppink"
+SF6: "red4"
+N2O: "deeppink"
 AGGI: "green4"
 
 Step 2: Plot line graphs of the Emission Data. Emission values on the `y` axis and year on the `x` axis. 
@@ -511,7 +518,7 @@ Step 2: Plot line graphs of the Emission Data. Emission values on the `y` axis a
 Carbon Dioxide: 
 ```{r}
 CO2_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = Year, y = CO2_ppm), 
+  geom_line(aes(x = year, y = CO2_ppm), 
             color = "blue", lwd = 2) +
   theme_bw() +
   xlab("Year") +
@@ -535,7 +542,7 @@ CO2_plot
 Methane: 
 ```{r}
 CH4_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = Year, y = CH4_ppb), 
+  geom_line(aes(x = year, y = CH4_ppb), 
             color = "purple3",
             lwd = 2) +
   theme_bw() +
@@ -560,7 +567,7 @@ CH4_plot
 Ozone:
 ```{r}
 O3_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = Year, y = O3_DU), 
+  geom_line(aes(x = year, y = O3_DU), 
             color = "goldenrod",
             lwd = 2) +
   theme_bw() +
@@ -583,8 +590,8 @@ O3_plot
 ```
 
 ```{r}
-p3 <- ggplot(GHG_Emissions, 
-      aes(x= Year, y=SF6_ppt))+
+SF6_plot <- ggplot(GHG_Emissions, 
+      aes(x= year, y=SF6_ppt))+
    geom_line(stat="identity", 
              color = "red2",
              lwd = 2)+
@@ -604,12 +611,12 @@ p3 <- ggplot(GHG_Emissions,
                      limits = c(0, 12), 
                      breaks = seq(0, 12, 2)) 
 
-p3
+SF6_plot
 ```
 
 ```{r}
-p4 <- ggplot(GHG_Emissions, 
-      aes(x= Year, y=N2O_ppb))+
+N2O_plot <- ggplot(GHG_Emissions, 
+      aes(x= year, y=N2O_ppb))+
    geom_line(stat="identity", 
              color = "deeppink",
              lwd = 2)+
@@ -629,13 +636,13 @@ p4 <- ggplot(GHG_Emissions,
                      limits = c(300, 340), 
                      breaks = seq(300, 340, 5)) 
 
-p4
+N2O_plot
 ```
 
 Annual Greenhouse Gas Index:
 ```{r}
 AGGI_plot <- ggplot(GHG_Emissions) +
-  geom_line(aes(x = Year, y = AGGI), 
+  geom_line(aes(x = year, y = AGGI), 
             color = "green4",
             lwd = 2) +
   theme_bw() +
@@ -659,7 +666,7 @@ AGGI_plot
 
 Step 3: Make the 2x2 grid panel of the emission values.
 ```{r}
-grid.arrange(CO2_plot, CH4_plot, p3, p4, O3_plot, AGGI_plot, nrow = 2)
+grid.arrange(CO2_plot, CH4_plot, SF6_plot, N2O_plot, O3_plot, AGGI_plot, nrow = 2)
 ```
 `Fig_GHGEmissionsData`
 
@@ -688,7 +695,7 @@ p1 <- ggplot(x) +
            stat = "identity", 
            color = "white",
            fill = "grey70",
-           lwd = 1) +
+           linewidth = 1) +
   geom_line(aes(x = Year, y = CO2*7000/500),
             stat = "identity",
             color = "blue",
@@ -773,6 +780,11 @@ p3 <- ggplot(x) +
                      sec.axis = sec_axis(~.*140/6000, 
                                          name = "Ozone [DU]"))
 ```
+
+```{r}
+
+```
+
 
 CAPE and AGGI: 
 ```{r}
@@ -865,6 +877,8 @@ plot_CAPE <- ggplot(BigDays.sfdfT, aes(maxCAPE)) +
   ggtitle("C") +
   theme_bw() +
   theme(text = element_text(size=12), plot.background = element_rect(color = "grey40"), panel.border = element_rect(color = "white"), plot.margin=unit(c(0.5, 0.5, 0.5, 0.5),"cm"))
+
+plot_CAPE
 ```
 
 `Deep Layer Shear`
@@ -910,8 +924,6 @@ plot_SLBS
 ```
 
 ```{r}
-library(corrplot)
-library(ggpubr)
 ggarrange(plot_DLBS, plot_SLBS, plot_CAPE, ncol = 1, nrow = 3)
 ```
 
@@ -924,7 +936,15 @@ GHGVars <- data.frame(CO2 =  BigDays.sfdfT$CO2_10year,
                        O3 = BigDays.sfdfT$O3_10year, 
                        SF6 = BigDays.sfdfT$SF6_10year, 
                        N2O = BigDays.sfdfT$N2O_10year, 
-                       AGGI = BigDays.sfdfT$AGGI_10year)
+                       AGGI = BigDays.sfdfT$AGGI_10year,
+                      AirT = BigDays.sfdfT$max_globalairtemp,
+                      monATL = BigDays.sfdfT$monthlyATLSST,
+                      monGAK = BigDays.sfdfT$monthlyGAKSST,
+                      monNino = as.numeric(BigDays.sfdfT$monthlyElNino34),
+                      monSIE = BigDays.sfdfT$monthlySIE,
+                      NAO30 = BigDays.sfdfT$NAO_30day,
+                      PNA30 = BigDays.sfdfT$PNA_30day,
+                      MJO30 = BigDays.sfdfT$MJO_30day)
 ```
 
 *Create a figure to show correlations between the climate variables. *
@@ -945,7 +965,7 @@ corrplot.mixed(cor(DLBS_env), tl.col="black", lower.col="black", number.cex = 1,
 
 Initial Model:
 ```{r}
-DLBS_m1 <- lm(maxBS_deep ~ CO2_1year + O3_10year + Lat + Lon + Year, data = BigDays.sfdfT)
+DLBS_m1 <- lm(maxBS_deep ~ CO2_10year + O3_10year + max_globalairtemp + monthlyATLSST + monthlyGAKSST + as.numeric(monthlyElNino34) + monthlySIE + NAO_30day + PNA_30day + MJO_30day + Lat + Lon + Year, data = BigDays.sfdfT)
 summary(DLBS_m1)
 ```
 
@@ -1040,39 +1060,44 @@ ggplot(DLBSByYear, aes(x = as.factor(Year), y = avgDLBS)) +
 ```
 
 ```{r}
-#Average Environmental Variable per year as the response variable? 
-test <- BigDays.sfdfT %>%
-  group_by(Year, Month) %>%
-  summarize(avgmaxCAPE = mean(maxCAPE),
-            avgmaxDLBS = mean(maxBS_deep),
-            avgmaxSLBS = mean(maxBS_shallow),
-            CO2_decadal = max(CO2_10year),
-            CO2_annual = max(CO2_1year),
-            CH4_decadal = max(CH4_10year),
-            CH4_annual = max(CH4_1year),
-            O3_decadal = max(O3_10year),
-            O3_annual = max(O3_1year))
+cor.test(BigDays.sfdfT$maxBS_deep, BigDays.sfdfT$Year)
 ```
-
+p-value = 0.05364
 
 ```{r}
 library(lme4)
-DLBS_m2 <- lmer(maxBS_deep ~ CO2_1year +O3_10year + Lat + Lon + (1|Month), data = BigDays.sfdfT)
+DLBS_m2 <- lmer(maxBS_deep ~ CO2_10year + O3_10year + max_globalairtemp + monthlyATLSST + monthlyGAKSST + as.numeric(monthlyElNino34) + monthlySIE + NAO_30day + PNA_30day + MJO_30day + Lat + Lon + Year + (1|Mo), data = BigDays.sfdfT)
 summary(DLBS_m2)
 ```
 
 ```{r}
-DLBS_m3 <- lmer(maxBS_deep ~ CO2_1year +O3_10year + Lat + Lon + (1|Month), data = BigDays.sfdfT)
+DLBS_m3 <- lmer(maxBS_deep ~ CO2_10year + O3_10year + max_globalairtemp + monthlyATLSST + monthlyGAKSST + as.numeric(monthlyElNino34) + monthlySIE + NAO_30day + PNA_30day + MJO_30day + Lat + Lon + Year + (1|Mo), data = BigDays.sfdfT)
+summary(DLBS_m3)
+```
+
+
+```{r}
+DLBS_m3 <- lmer(maxBS_deep ~ CO2_10year + O3_10year + max_globalairtemp + as.numeric(monthlyElNino34) + monthlySIE + NAO_30day + PNA_30day + MJO_30day + Lat + Lon + Year + (1|Mo), data = BigDays.sfdfT)
 summary(DLBS_m3)
 ```
 
 ```{r}
-AIC(DLBS_m1, DLBS_m2, DLBS_m3)
+DLBS_m4 <- lmer(maxBS_deep ~ CO2_10year + O3_10year  + as.numeric(monthlyElNino34) + monthlySIE + NAO_30day + PNA_30day + MJO_30day + Lat + Lon + Year + (1|Mo), data = BigDays.sfdfT)
+summary(DLBS_m4)
+```
+
+```{r}
+DLBS_m5 <- lmer(maxBS_deep ~ CO2_10year + O3_10year  + monthlySIE + NAO_30day + PNA_30day + MJO_30day + Lat + Lon + Year + (1|Mo), data = BigDays.sfdfT)
+summary(DLBS_m5)
+```
+
+```{r}
+AIC(DLBS_m1, DLBS_m2, DLBS_m3, DLBS_m4, DLBS_m5)
 ```
 
 *The lowest AIC is the model to choose!*
 ```{r}
-DLBS_model <- DLBS_m4
+DLBS_model <- DLBS_m5
 ```
 
 *Check the residuals of model 8 of DLBS.*
@@ -1111,13 +1136,14 @@ BigDays.sfdfT$predDLBS <- predictDLBS
 cor.test(BigDays.sfdfT$maxBS_deep, predictDLBS, conf.level = 0.95)
 MuMIn::r.squaredGLMM(DLBS_model)
 library("sjstats")
-r2(DLBS_model)
+performance::r2(DLBS_model)
 ```
-This model explains 36% of the variation of DLBS.
+This model explains 40.4% of the variation of DLBS.
 
 *Make a table of the model coefficients. *
 ```{r}
 DLBSmod_coefs <- summary(DLBS_model)
+library(xtable)
 xtable(DLBSmod_coefs$coefficients, digits = 3)
 ```
 
