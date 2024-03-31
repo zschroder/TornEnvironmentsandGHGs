@@ -1277,3 +1277,42 @@ test <- raster(ta, layer = 2)
 library(terra)
 x <- rast('SSS.nc')
 ```
+
+Significance Testing
+```{r}
+dat <- BigDays.sfdfT %>%
+  group_by(Year) %>%
+  summarize(numClus = n(),
+            numTorn = sum(nT),
+            numCas = sum(GroupDayCas),
+            CO2_10year = max(CO2_10year),
+            CH4_10year = max(CH4_10year), 
+            O3_10year = max(O3_10year),
+            AGGI_10year = max(AGGI_10year))
+```
+
+```{r}
+cor.test(dat$numClus, dat$Year, method = "pearson")
+cor.test(dat$numTorn, dat$Year, method = "pearson")
+cor.test(dat$numCas, dat$Year, method = "pearson")
+
+cor.test(dat$CO2_10year, dat$Year, method = "pearson")
+cor.test(dat$CH4_10year, dat$Year, method = "pearson")
+cor.test(dat$O3_10year, dat$Year, method = "pearson")
+cor.test(dat$AGGI_10year, dat$Year, method = "pearson")
+
+cor.test(dat$numClus, dat$CO2_10year, method = "pearson")
+cor.test(dat$numClus, dat$CH4_10year, method = "pearson")
+cor.test(dat$numClus, dat$O3_10year, method = "pearson")
+cor.test(dat$numClus, dat$AGGI_10year, method = "pearson")
+
+cor.test(dat$numTorn, dat$CO2_10year, method = "pearson")
+cor.test(dat$numTorn, dat$CH4_10year, method = "pearson")
+cor.test(dat$numTorn, dat$O3_10year, method = "pearson")
+cor.test(dat$numTorn, dat$AGGI_10year, method = "pearson")
+
+cor.test(dat$numCas, dat$CO2_10year, method = "pearson")
+cor.test(dat$numCas, dat$CH4_10year, method = "pearson")
+cor.test(dat$numCas, dat$O3_10year, method = "pearson")
+cor.test(dat$numCas, dat$AGGI_10year, method = "pearson")
+```
