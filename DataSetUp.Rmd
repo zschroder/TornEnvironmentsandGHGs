@@ -23,6 +23,7 @@ Install the packages for this project:
 
 ```{r}
 suppressMessages(library(sf))
+0
 suppressMessages(library(dplyr))
 suppressMessages(library(lubridate))
 suppressMessages(library(lutz))
@@ -193,7 +194,6 @@ Groups.sfdfT <- All_Tornadoes %>%
             n3 = sum(mag == 3, na.rm = TRUE),
             n4 = sum(mag == 4, na.rm = TRUE),
             n5 = sum(mag == 5, na.rm = TRUE),
-            maxEF = max(mag),
             ATP = sum(ED, na.rm = TRUE),
             ATP_TW = ATP/10^12,
             maxEF = max(mag),
@@ -225,7 +225,6 @@ BigDays.sfdfT <- All_Tornadoes %>%
             n3 = sum(mag == 3, na.rm = TRUE),
             n4 = sum(mag == 4, na.rm = TRUE),
             n5 = sum(mag == 5, na.rm = TRUE),
-            maxEF = max(mag),
             ATP = sum(ED, na.rm = TRUE),
             maxATP = max(ED),
             avgATP = mean(ED, na.rm = TRUE),
@@ -337,7 +336,7 @@ BigDays.sfdfT <- st_transform(BigDays.sfdfT,
 ```
 
 ```{r}
-#load("TornadoOutbreaks.RData")
+load("TornadoOutbreaks.RData")
 ```
 
 ###############
@@ -481,6 +480,7 @@ BigDays.sfdfT$minLCL <- minLCL
 BigDays.sfdfT$maxLCL <- maxLCL
 BigDays.sfdfT$avgLCL <- avgLCL
 ```
+
 
 ########################
 ## Population Density ##
@@ -634,25 +634,16 @@ Save the data.
 
 ```{r}
 #save(BigDays.sfdfT, BigDayTornadoes, BigDayCentroids.df, Groups.sfdfT, GroupTornadoes, All_Tornadoes, file = "TornadoOutbreaks.RData")
-#load("TornadoOutbreaks.RData")
-```
-
-```{r, eval = FALSE}
-updat <- BigDays.sfdfT
 load("TornadoOutbreaks.RData")
-NARRdat <- BigDays.sfdfT[,33:67]
-NARRdat <- st_drop_geometry(NARRdat)
-
-BigDays.sfdfT <- cbind(updat,NARRdat)
 ```
 
 Greenhouse Gas Emission Data: 
 
 Annual: 
-Carbon Dioxide: 1979
-Methane: 1979
-Nitrous Oxide: 1979
-Sulfur Hexaflouride: 1979
+Carbon Dioxide: 1959
+Methane: 1984
+Nitrous Oxide: 2001
+Sulfur Hexaflouride: 1998
 Ozone: 1979
 AGGI: 1979
 
@@ -665,7 +656,7 @@ colnames(Annual_GHG)[1] <- "Year"
 ```{r}
 Annual_GHG <- Annual_GHG %>%
   filter(Year >= 1984) %>%
-  dplyr::select(Year, CO2_ppm, CH4_ppb, N2O_ppb, SF6_ppt, O3_DU, AGGI)
+  dplyr::select(Year, CO2_ppm, CH4_ppb, O3_DU, AGGI)
 ```
 
 
@@ -675,8 +666,6 @@ Annual_GHG <- Annual_GHG %>%
 Year= c()
 CO2_10year = c()
 CH4_10year = c()
-N2O_10year = c()
-SF6_10year = c()
 O3_10year = c()
 AGGI_10year = c()
 
@@ -689,21 +678,17 @@ for(h in 1:dim(BigDays.sfdfT)[1]){
   Year = c(Year, i)
   CO2_10year = c(CO2_10year, mean(Annual_GHG$CO2_ppm[startrow:endrow]))
   CH4_10year = c(CH4_10year, mean(Annual_GHG$CH4_ppb[startrow:endrow]))
-  N2O_10year = c(N2O_10year, mean(Annual_GHG$N2O_ppb[startrow:endrow]))
-  SF6_10year = c(SF6_10year, mean(Annual_GHG$SF6_ppt[startrow:endrow]))
   O3_10year = c(O3_10year, mean(Annual_GHG$O3_DU[startrow:endrow]))
   AGGI_10year = c(AGGI_10year, mean(Annual_GHG$AGGI[startrow:endrow]))
 }
 
-GHG_10year <- cbind(Year, CO2_10year, CH4_10year, N2O_10year, SF6_10year, O3_10year, AGGI_10year)
+GHG_10year <- cbind(Year, CO2_10year, CH4_10year, O3_10year, AGGI_10year)
 ```
 5-year averages: 
 ```{r}
 Year= c()
 CO2_5year = c()
 CH4_5year = c()
-N2O_5year = c()
-SF6_5year = c()
 O3_5year = c()
 AGGI_5year = c()
 
@@ -716,21 +701,17 @@ endrow = which(Annual_GHG$Year == endyear)
 Year = c(Year, i)
 CO2_5year = c(CO2_5year, mean(Annual_GHG$CO2_ppm[startrow:endrow]))
 CH4_5year = c(CH4_5year, mean(Annual_GHG$CH4_ppb[startrow:endrow]))
-  N2O_5year = c(N2O_5year, mean(Annual_GHG$N2O_ppb[startrow:endrow]))
-  SF6_5year = c(SF6_5year, mean(Annual_GHG$SF6_ppt[startrow:endrow]))
 O3_5year = c(O3_5year, mean(Annual_GHG$O3_DU[startrow:endrow]))
 AGGI_5year = c(AGGI_5year, mean(Annual_GHG$AGGI[startrow:endrow]))
 }
 
-GHG_5year <- cbind(Year, CO2_5year, CH4_5year, N2O_5year, SF6_5year, O3_5year, AGGI_5year)
+GHG_5year <- cbind(Year, CO2_5year, CH4_5year, O3_5year, AGGI_5year)
 ```
 
 ```{r}
 Year= c()
 CO2_1year = c()
 CH4_1year = c()
-N2O_1year = c()
-SF6_1year = c()
 O3_1year = c()
 AGGI_1year = c()
 
@@ -741,21 +722,20 @@ startrow = which(Annual_GHG$Year == startyear)
 Year = c(Year, i)
 CO2_1year = c(CO2_1year, (Annual_GHG$CO2_ppm[startrow]))
 CH4_1year = c(CH4_1year, (Annual_GHG$CH4_ppb[startrow]))
-  N2O_1year = c(N2O_1year, mean(Annual_GHG$N2O_ppb[startrow:endrow]))
-  SF6_1year = c(SF6_1year, mean(Annual_GHG$SF6_ppt[startrow:endrow]))
 O3_1year = c(O3_1year, (Annual_GHG$O3_DU[startrow]))
 AGGI_1year = c(AGGI_1year, (Annual_GHG$AGGI[startrow]))
 }
 
-GHG_1year <- cbind(Year, CO2_1year, CH4_1year, N2O_1year, SF6_1year,O3_1year, AGGI_1year)
+GHG_1year <- cbind(Year, CO2_1year, CH4_1year, O3_1year, AGGI_1year)
 ```
 
 
 ```{r}
-BigDays.sfdfT <- cbind(BigDays.sfdfT, GHG_10year[,2:7], GHG_5year[,2:7], GHG_1year[,2:7])
+BigDays.sfdfT <- cbind(BigDays.sfdfT, GHG_10year[,2:5], GHG_5year[,2:5], GHG_1year[,2:5])
 ```
 
 ```{r}
+
 BigDays.sfdfT <- st_as_sf(BigDays.sfdfT)
 BigDayTornadoes <- st_as_sf(BigDayTornadoes)
 BigDayCentroids.df <- st_as_sf(BigDayCentroids.df)
@@ -763,7 +743,7 @@ Groups.sfdfT <- st_as_sf(Groups.sfdfT)
 GroupTornadoes <- st_as_sf(GroupTornadoes)
 All_Tornadoes <- st_as_sf(All_Tornadoes)
 #save(BigDays.sfdfT, BigDayTornadoes, BigDayCentroids.df, Groups.sfdfT, GroupTornadoes, All_Tornadoes, file = "TornadoOutbreaks.RData")
-#load("TornadoOutbreaks.RData")
+load("TornadoOutbreaks.RData")
 ```
 
 Monthly: 
