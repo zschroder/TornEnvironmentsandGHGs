@@ -23,7 +23,6 @@ Install the packages for this project:
 
 ```{r}
 suppressMessages(library(sf))
-0
 suppressMessages(library(dplyr))
 suppressMessages(library(lubridate))
 suppressMessages(library(lutz))
