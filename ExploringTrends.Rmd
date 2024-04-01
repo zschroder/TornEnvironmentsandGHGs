@@ -180,42 +180,42 @@ Seasons
 Graphing Total Outbreaks per Year
 ```{r}
 Seasons$seasons <- factor(Seasons$seasons, levels = Seasons$seasons)
+test <- BigDays.sfdfT %>%
+  group_by(Month) %>%
+  summarize(numClus = n())
 
 #Plotting Outbreaks
-ggplot(Seasons,
-       aes(x=seasons, y=Total_Clusters))+
-  
-  #Line Graph
+ggplot(test,
+       aes(x=Month, y=numClus))+
   geom_bar(stat="identity", 
             fill="red3", 
             linewidth=1)+
-  
-  #Creating Linear Regression Line
-  stat_smooth(method = "lm", 
-              formula = y~x, 
-              geom="smooth", 
-              color="black", 
-              linewidth=1)+
-  
-  #Plot Formatting
-  #ggtitle("Total Clusters Per Season")+
-  theme_bw()+
+  scale_x_discrete(labels = month.abb) +  
+  coord_polar(start =0) +
+  theme_bw() +
   theme(plot.title=element_text(size = 18, hjust=0.5), 
         plot.margin=margin(0.5,0.5,0.5,0.5, "cm"), 
         axis.text.x=element_text(size = 14, angle=45, hjust=1),
         axis.text.y = element_text(size = 14),
         axis.title.x = element_text(size = 16),
         axis.title.y = element_text(size = 16))+
-  
-  #Axes Formatting
-  xlab("Season")+
+  xlab("Month")+
   ylab("Total Clusters")+
-  #scale_x_continuous(expand = c(0,0),
-                  #   limits=c(1,12),
-                   #  breaks=seq(1,12,1))+
   scale_y_continuous(expand = c(0,0),
-                     limits=c(0,500), 
-                     breaks=seq(0,500,50))
+                     limits=c(0,300), 
+                     breaks=seq(0,300,50))
+
+```
+
+```{r}
+( p0 <- ggplot(DLBSByMonth, aes(x = Mo, y = avgDLBS)) +
+  geom_bar(stat = "identity", fill = "gray70") +
+ scale_x_continuous(breaks = seq(1, 12, 1), labels = month.abb) +
+  scale_y_continuous(limits = c(0, 2)) +
+  coord_polar(start =0) +
+  labs(x = "Month", y = expression(paste("Normalized Averages of DLBS [m ", s^-1, "]"))) +
+  #ggtitle("a") +
+  theme_minimal() )
 ```
 `FIG_ClusbySeason`
 
@@ -1320,6 +1320,8 @@ cor.test(dat$numCas, dat$O3_10year, method = "pearson")
 cor.test(dat$numCas, dat$AGGI_10year, method = "pearson")
 ```
 
+Null: There is no difference (variables not related)
+Alt: They are related
 ```{r}
 cor.test(BigDays.sfdfT$maxCAPE, BigDays.sfdfT$Year, method = "pearson")
 cor.test(BigDays.sfdfT$minCIN, BigDays.sfdfT$Year, method = "pearson")
@@ -1345,5 +1347,146 @@ cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$CO2_10year, method = "pearso
 cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$CH4_10year, method = "pearson")
 cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$O3_10year, method = "pearson")
 cor.test(BigDays.sfdfT$maxBS_shallow, BigDays.sfdfT$AGGI_10year, method = "pearson")
+```
+
+```{r}
+test <- BigDays.sfdfT %>%
+  group_by(Year) %>%
+  summarize(CAPE = mean(maxCAPE, na.rm = TRUE),
+            CIN = mean(minCIN, na.rm = TRUE),
+            DLBS = mean(maxBS_deep, na.rm = TRUE),
+            SLBS = mean(maxBS_shallow, na.rm = TRUE))
+```
+
+```{r}
+plot_CAPE <- ggplot(data = test, 
+                    aes(x = Year, y =CAPE)) + 
+  geom_bar(stat = "identity",
+           fill = "purple4",
+           lwd = 1) +
+  geom_smooth(method = lm, 
+               color = "black", 
+              lwd = 1,
+              se = FALSE) +
+  #ggtitle("CAPE")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust=0.5, 
+                                  size = 20), 
+        plot.margin = margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x = element_text(angle=45, 
+                                   hjust=1,
+                                   size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  xlab("Year") +
+  ylab("Convective Available Potential Energy [J/kg]") +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1993, 2023),
+                     breaks = seq(1994, 2022, 2)) +
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,3000,250), 
+                     breaks = seq(0,3000,250))
+plot_CAPE
+```
+
+```{r}
+plot_CIN <- ggplot(data = test, 
+                    aes(x = Year, y =CIN*-1)) + 
+  geom_bar(stat = "identity",
+           fill = "darkgreen",
+           lwd = 1) +
+  geom_smooth(method = lm, 
+               color = "black", 
+              lwd = 1,
+              se = FALSE) +
+  #ggtitle("CAPE")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust=0.5, 
+                                  size = 20), 
+        plot.margin = margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x = element_text(angle=45, 
+                                   hjust=1,
+                                   size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  xlab("Year") +
+  ylab("Convective Inhibition [J/kg]") +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1993, 2023),
+                     breaks = seq(1994, 2022, 2)) +
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,200,20), 
+                     breaks = seq(0,200,20))
+plot_CIN
+```
+
+```{r}
+plot_DLBS <- ggplot(data = test, 
+                    aes(x = Year, y =DLBS)) + 
+  geom_bar(stat = "identity",
+           fill = "dodgerblue",
+           lwd = 1) +
+  geom_smooth(method = lm, 
+               color = "black", 
+              lwd = 1,
+              se = FALSE) +
+  #ggtitle("CAPE")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust=0.5, 
+                                  size = 20), 
+        plot.margin = margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x = element_text(angle=45, 
+                                   hjust=1,
+                                   size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  xlab("Year") +
+  ylab("Deep-Layer Shear [m/s]") +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1993, 2023),
+                     breaks = seq(1994, 2022, 2)) +
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,40,5), 
+                     breaks = seq(0,40,5))
+plot_DLBS
+```
+
+```{r}
+plot_SLBS <- ggplot(data = test, 
+                    aes(x = Year, y =SLBS)) + 
+  geom_bar(stat = "identity",
+           fill = "darkred",
+           lwd = 1) +
+  geom_smooth(method = lm, 
+               color = "black", 
+              lwd = 1,
+              se = FALSE) +
+  #ggtitle("CAPE")+
+  theme_bw()+
+  theme(plot.title = element_text(hjust=0.5, 
+                                  size = 20), 
+        plot.margin = margin(0.5,0.5,0.5,0.5, "cm"), 
+        axis.text.x = element_text(angle=45, 
+                                   hjust=1,
+                                   size = 14),
+        axis.text.y = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16)) +
+  xlab("Year") +
+  ylab("Shallow-Layer Shear [m/s]") +
+  scale_x_continuous(expand = c(0,0),
+                     limits = c(1993, 2023),
+                     breaks = seq(1994, 2022, 2)) +
+  scale_y_continuous(expand = c(0,0),
+                     limits = c(0,25,5), 
+                     breaks = seq(0,2540,5))
+plot_SLBS
+```
+
+```{r}
+ggarrange(plot_CAPE, plot_CIN, plot_DLBS, plot_SLBS)
 ```
 
