@@ -1250,7 +1250,7 @@ AGGI_10<-ggplot()+
 ```
 
 ```{r}
-grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2, top ="Decadal Average Emissions & Total Outbreaks per Year")
+grid.arrange(CO2_10, CH4_10, O3_10, AGGI_10, nrow=2, top ="Decadal Average Emissions & Total Clusters  per Year")
 ```
 
 #################################
