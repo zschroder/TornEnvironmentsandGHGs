@@ -1124,7 +1124,7 @@ CO2_10<-ggplot()+
   geom_bar(data =Torn,
            aes(x=Year, y=Totout_yr*8), 
            stat="identity", 
-           fill="orange3", 
+           fill="grey40", 
            linewidth=1)+
   
   #Plotting 10 Year average CO2
@@ -1143,10 +1143,10 @@ CO2_10<-ggplot()+
   ylab(expression("CO"[2]*" Emissions (ppm)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1994,2022), 
-                     breaks=seq(1994,2022,10))+
+                     breaks=seq(1994,2022,4))+
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(0, 415), 
-                     breaks = seq(0,415, 50), 
+                     limits=c(0, 450), 
+                     breaks = seq(0,450, 50), 
                      sec.axis = sec_axis(~./8, name = "Total Tornado Outbreaks")) 
 ```
 
@@ -1157,7 +1157,7 @@ CH4_10<-ggplot()+
   #Plotting Total # of outbreaks per year
   geom_bar(data = Torn,
            aes(x=Year, y=Totout_yr*60), 
-           fill="orange3", 
+           fill="grey40", 
            stat = "identity",
            linewidth=1)+
   
@@ -1176,10 +1176,10 @@ CH4_10<-ggplot()+
   ylab(expression("CH"[4]*" Emissions (ppb)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1994,2022), 
-                     breaks=seq(1994,2022,10))+
+                     breaks=seq(1994,2022,4))+
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(0, 3000),
-                     breaks = seq(0,3000, 500), 
+                     limits=c(0, 2000),
+                     breaks = seq(0,2000, 500), 
                      sec.axis = sec_axis(~./60, name = "Total Tornado Outbreaks")) 
 ```
 
@@ -1189,8 +1189,8 @@ O3_10<-ggplot()+
   
   #Plotting Total # of outbreaks per year
   geom_bar(data = Torn, 
-           aes(x=Year, y=Totout_yr/.3), 
-           fill="orange3",
+           aes(x=Year, y=Totout_yr/.5), 
+           fill="grey40",
            stat ="identity",
            linewidth=1)+
   
@@ -1209,11 +1209,11 @@ O3_10<-ggplot()+
   ylab(expression("O"[3]*" Emission (DU)"))+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1994,2022), 
-                     breaks=seq(1994,2022,10))+
+                     breaks=seq(1994,2022,4))+
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(0, 200), 
-                     breaks = seq(0,200, 20), 
-                     sec.axis = sec_axis(~.*.3, name = "Total Tornado Outbreaks")) 
+                     limits=c(0, 140), 
+                     breaks = seq(0,140, 20), 
+                     sec.axis = sec_axis(~.*.5, name = "Total Tornado Outbreaks")) 
 ```
 
 **10 year averages AGGI and Tornado Outbreaks**
@@ -1222,9 +1222,9 @@ AGGI_10<-ggplot()+
   
   #Plotting Total # of outbreaks per year
   geom_bar(data=Torn,
-           aes(x=Year, y=Totout_yr/30), 
+           aes(x=Year, y=Totout_yr/50), 
            stat = "identity",
-           fill="orange3", 
+           fill="grey40", 
            linewidth=1)+
   
   #Plotting 10 year averages AGGI
@@ -1242,11 +1242,11 @@ AGGI_10<-ggplot()+
   ylab("AGGI")+
   scale_x_continuous(expand = c(0,0),
                      limits=c(1994,2022), 
-                     breaks=seq(1994,2022,10))+
+                     breaks=seq(1994,2022,4))+
   scale_y_continuous(expand = c(0, 0), 
-                     limits=c(0, 2), 
-                     breaks = seq(0,2,.2), 
-                     sec.axis = sec_axis(~.*30, name = "Total Tornado Outbreaks")) 
+                     limits=c(0, 1.4), 
+                     breaks = seq(0,1.4,.2), 
+                     sec.axis = sec_axis(~.*50, name = "Total Tornado Outbreaks")) 
 ```
 
 ```{r}
