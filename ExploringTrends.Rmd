@@ -1480,3 +1480,163 @@ plot_SLBS
 ggarrange(plot_CAPE, plot_CIN, plot_DLBS, plot_SLBS)
 ```
 
+```{r}
+BigDays.sfdfT %>%
+  group_by(Mo) %>%
+  summarize(numClus =n())
+  
+```
+
+```{r, eval = FALSE}
+library(tidyverse)
+df <- All_Tornadoes %>% extract(geometry, c('slon', 'slat'), '\\((.*), (.*)\\)', convert = TRUE) 
+lon_lat <- df[,28:29]
+All_Tornadoes <- cbind(All_Tornadoes, lon_lat)
+```
+
+```{r, eval = FALSE}
+BigDayTornadoes <- All_Tornadoes %>%
+   mutate(ID = paste0(gsub("-", "", cDate), groupNumber))
+BigDays.sfdfT <- BigDays.sfdfT %>%
+   mutate(ID = paste0(gsub("-", "", cDate), groupNumber))
+
+BigDayTornadoes <- BigDayTornadoes %>%
+  filter(ID %in% BigDays.sfdfT$ID)
+```
+
+ New Addition to the Data Files
+```{r, eval = FALSE}
+#save(All_Tornadoes, BigDayCentroids.df, BigDays.sfdfT, BigDayTornadoes, Groups.sfdfT, file = "TornadoOutbreaks.RData")
+#save(All_Tornadoes, BigDayCentroids.df, BigDays.sfdfT, BigDayTornadoes, Groups.sfdfT, file = "TornadoOutbreaks_Backup.RData")
+```
+
+```{r}
+ewbrks <- seq(-120, -70,10)
+nsbrks <- seq(25,50,5)
+ewlbls <- unlist(lapply(ewbrks, function(x) ifelse(x < 0, paste(x*-1, "°W"), ifelse(x > 0, paste(x, "°E"),x))))
+nslbls <- unlist(lapply(nsbrks, function(x) ifelse(x < 0, paste(x, "°S"), ifelse(x > 0, paste(x, "°N"),x))))
+```
+
+
+```{r}
+BigDayCentroids.df %>%
+  group_by(st) %>%
+  summarize(numClus = n())
+
+names <- array(month.name)
+
+p <- (ggplot(stateBorders) +
+  geom_sf(fill = NA, color = "gray70") + 
+  stat_density2d(aes(x = slon, y = slat, fill = ..level..), alpha = .5, h = 5,
+                 geom = "polygon", data = BigDayTornadoes) +
+  facet_wrap(~mo, ncol = 3, labeller = labeller(mo = 
+                    c("1" = "January",
+                      "2" = "February",
+                      "3" = "March",
+                      "4" = "April",
+                      "5" = "May",
+                      "6" = "June",
+                      "7" = "July",
+                      "8" = "August",
+                      "9" = "September",
+                      "10" = "October",
+                      "11" = "November",
+                      "12" = "December"))) +
+    scale_fill_distiller(palette = "YlOrRd", direction  = 1) +
+ scale_x_continuous(breaks = ewbrks, labels = ewlbls) +
+  scale_y_continuous(breaks = nsbrks, labels = nslbls) +
+  labs(x = "Longitude", y = "Latitude") +#, fill = "Density") +
+  #scale_fill_gradient(low = "#FCBBA1", high = "#99000D") + 
+  theme_minimal())
+
+p <- p + theme(axis.text.x = element_text(angle = 45, margin = margin(t = 20)), axis.text.y = element_text(margin = margin(r = 20)), axis.title.y = element_text( margin = margin(r=20)), strip.text = element_text(size=16), axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold"), legend.position="none")
+
+p
+```
+
+```{r}
+p <- (ggplot(stateBorders) +
+  geom_sf(fill = NA, color = "gray70") + 
+  stat_density2d(aes(x = Lon, y = Lat, col = maxCAPE), alpha = .5, h = 5,
+                 geom = "polygon", data = BigDays.sfdfT) +
+    scale_fill_distiller(palette = "YlOrRd", direction  = 1) +
+ scale_x_continuous(breaks = ewbrks, labels = ewlbls) +
+  scale_y_continuous(breaks = nsbrks, labels = nslbls) +
+  labs(x = "Longitude", y = "Latitude") +#, fill = "Density") +
+  #scale_fill_gradient(low = "#FCBBA1", high = "#99000D") + 
+  theme_minimal())
+
+p <- p + theme(axis.text.x = element_text(angle = 45, margin = margin(t = 20)), axis.text.y = element_text(margin = margin(r = 20)), axis.title.y = element_text( margin = margin(r=20)), strip.text = element_text(size=16), axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold"), legend.position="none")
+
+p
+```
+
+```{r}
+library(gstat)
+library(tidyverse)
+library(stars) 
+library(purrr)
+```
+
+```{r}
+k <- variogram(maxCAPE~1, BigDays.sfdfT, cutoff = 1500, width = 50)
+
+plot(k, threshold = 4) #linear variogram
+
+library(kableExtra)
+fit.lin <- vgm(1, 'Lin', 0)
+```
+Grid of the US: 
+```{r}
+ch_grid <- stateBorders %>% 
+   st_as_sf() %>% 
+   st_make_grid(cellsize = 1, what = "polygons")
+
+  ch_grid %>% st_set_crs(st_crs(BigDays.sfdfT)) 
+  grd <- st_transform(ch_grid, crs = st_crs(BigDays.sfdfT))
+```
+
+```{r}
+coords <- BigDayCentroids.df %>%
+    mutate(lat = unlist(map(BigDayCentroids.df$geometry,1)),
+           long = unlist(map(BigDayCentroids.df$geometry,2)))
+
+coords <- coords[,66:67]
+BigDays.sfdfT <- cbind(BigDays.sfdfT,coords)
+
+#BigDays.sfdfT <- as.data.frame(BigDays.sfdfT)
+#coordinates(BigDays.sfdfT) = ~lat+long
+
+BigDays.sfdfT %>% st_set_crs(st_crs(grd)) 
+BigDays.sfdfT <- st_transform(BigDays.sfdfT, crs = st_crs(grd))
+
+CAPE.lin <- krige(maxCAPE~1, BigDays.sfdfT, grd, model=fit.lin)
+spplot(CAPE.lin["var1.pred"], main = "ordinary kriging predictions")
+```
+
+https://r-spatial.github.io/gstat/reference/krige.html 
+https://www.cfholbert.com/blog/esda-kriging/
+
+
+```{r}
+library(purrr)
+
+
+ch_grid <- stateBorders %>% 
+   st_as_sf() %>% 
+   st_make_grid(cellsize = 0.1, what = "polygons")
+
+```
+
+```{r}
+lon_lat <- df[,28:29]
+All_Tornadoes <- cbind(All_Tornadoes, lon_lat)
+
+
+
+ch_grid <- stateBorders %>% 
+  st_as_sf() %>% 
+  mutate(bbox = map(geometry, st_bbox),
+         grid = map(geometry, ~ st_make_grid(., cellsize = 0.1, what = "polygons")))
+```
+
