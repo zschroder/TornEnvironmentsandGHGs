@@ -1614,8 +1614,42 @@ CAPE.lin <- krige(maxCAPE~1, BigDays.sfdfT, grd, model=fit.lin)
 spplot(CAPE.lin["var1.pred"], main = "ordinary kriging predictions")
 ```
 
+```{r}
+US_geom <-as.data.frame(ch_grid)
+CAPE_Krig <- cbind(CAPE.lin, US_geom)
+
+tm_shape(CAPE_Krig, 
+         is.master = TRUE, 
+         projection = merc) + 
+  tm_fill(col="var1.pred", alpha = .5, 
+              border.col = "black", 
+              lwd = 1.5) +
+tm_shape(stateBorders, 
+         projection = merc) +
+  tm_borders(col ="gray70", 
+             alpha = 1) +
+  tm_compass(text.size = 1.25, size = 3,
+             lwd = 2, 
+             color.dark = "gray70") +
+  tm_scale_bar(width = .25, 
+               text.size = 1.25, 
+               lwd = 1.75,  
+               color.dark = "gray70") +
+  tm_layout(attr.position = c("right","bottom"), 
+            inner.margins = c(.01, .01, .01, .01))
+```
+
+
 https://r-spatial.github.io/gstat/reference/krige.html 
 https://www.cfholbert.com/blog/esda-kriging/
+
+```{r}
+test <- CAPE.lin
+test<-as.data.frame(CAPE.lin)
+coordinates(test) = ~x+y
+spplot(test["var1.pred"])
+```
+
 
 
 ```{r}
